@@ -1,0 +1,316 @@
+/* ===============================
+   全局样式
+================================ */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    background:#f3f6fb;
+
+    color:#222;
+
+    display:flex;
+
+    min-height:100vh;
+
+}
+
+/* ===============================
+   左侧导航栏
+================================ */
+
+.sidebar{
+
+    width:260px;
+
+    background:#0f172a;
+
+    color:white;
+
+    display:flex;
+
+    flex-direction:column;
+
+    padding:35px 25px;
+
+}
+
+.logo{
+
+    margin-bottom:50px;
+
+}
+
+.logo h1{
+
+    font-size:38px;
+
+    margin-bottom:10px;
+
+}
+
+.logo p{
+
+    color:#cbd5e1;
+
+    font-size:14px;
+
+    line-height:1.6;
+
+}
+
+.sidebar ul{
+
+    list-style:none;
+
+}
+
+.sidebar li{
+
+    padding:16px;
+
+    margin-bottom:12px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    transition:0.3s;
+
+}
+
+.sidebar li:hover{
+
+    background:#1d4ed8;
+
+}
+
+.sidebar .active{
+
+    background:#2563eb;
+
+}
+/* ===============================
+   主内容区域
+================================ */
+
+.container{
+
+    flex:1;
+
+    padding:40px 50px;
+
+    overflow-y:auto;
+
+}
+
+/* ===============================
+   顶部标题
+================================ */
+
+header{
+
+    margin-bottom:35px;
+
+}
+
+header h1{
+
+    font-size:34px;
+
+    color:#0f172a;
+
+    margin-bottom:10px;
+
+}
+
+header p{
+
+    font-size:16px;
+
+    color:#64748b;
+
+}
+
+/* ===============================
+   搜索区域
+================================ */
+
+.search-panel{
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:30px;
+
+    box-shadow:
+
+        0 8px 30px
+
+        rgba(15,23,42,0.08);
+
+    margin-bottom:30px;
+
+}
+
+.search-input{
+
+    display:flex;
+
+    gap:15px;
+
+    margin-bottom:20px;
+
+}
+
+.search-input input{
+
+    flex:1;
+
+    height:52px;
+
+    border:none;
+
+    outline:none;
+
+    background:#f8fafc;
+
+    border-radius:12px;
+
+    padding:0 20px;
+
+    font-size:17px;
+
+    transition:0.3s;
+
+}
+
+.search-input input:focus{
+
+    background:white;
+
+    box-shadow:
+
+        0 0 0 3px
+
+        rgba(37,99,235,0.15);
+
+}
+
+.search-input button{
+
+    width:140px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    transition:0.3s;
+
+}
+
+.search-input button:hover{
+
+    background:#1d4ed8;
+
+}
+/* ===============================
+   搜索结果
+================================ */
+
+#loading{
+
+    margin-top:25px;
+
+    font-size:22px;
+
+    color:#2563eb;
+
+}
+
+.results{
+
+    margin-top:35px;
+
+}
+
+.paper-card{
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:28px;
+
+    margin-bottom:28px;
+
+    box-shadow:0 8px 30px rgba(0,0,0,.08);
+
+}
+
+.paper-card h2{
+
+    color:#1e3a8a;
+
+    margin-bottom:15px;
+
+}
+
+.paper-card p{
+
+    line-height:1.8;
+
+    margin-bottom:10px;
+
+    color:#475569;
+
+}
+
+.links{
+
+    margin-top:20px;
+
+}
+
+.links a{
+
+    display:inline-block;
+
+    margin-right:15px;
+
+    padding:10px 18px;
+
+    border-radius:8px;
+
+    background:#2563eb;
+
+    color:white;
+
+    text-decoration:none;
+
+}
+
+.links a:hover{
+
+    background:#1d4ed8;
+
+}

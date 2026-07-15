@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1.0">
+
+<title>ChemAI 智能文献发现平台</title>
+
+<link
+rel="stylesheet"
+href="css/style.css">
+
+</head>
+
+<body>
+
+<!-- 左侧导航 -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+
+        <h1>ChemAI</h1>
+
+        <p>Intelligent Literature Discovery Platform</p>
+
+    </div>
+
+    <ul>
+
+        <li class="active">
+            🔍 文献检索
+        </li>
+
+        <li>
+            🧠 AI总结
+        </li>
+
+        <li>
+            🧪 PubChem
+        </li>
+
+        <li>
+            ⭐ 收藏
+        </li>
+
+        <li>
+            ⚙ 设置
+        </li>
+
+    </ul>
+
+</aside>
+
+<!-- 主区域 -->
+
+<div class="container">
+
+<header>
+
+<h1>
+
+ChemAI 智能文献发现平台
+
+</h1>
+
+<p>
+
+OpenAlex · Semantic Scholar · Crossref · PubMed
+
+</p>
+
+</header>
+
+<div class="search-panel">
+
+<div class="search-input">
+
+<input
+
+id="keyword"
+
+placeholder="请输入关键词，例如 electrocatalyst membrane">
+
+<button id="searchBtn">
+
+搜索
+
+</button>
+
+</div>
+
+<div class="source-list">
+
+<label>
+
+<input
+checked
+type="checkbox">
+
+OpenAlex
+
+</label>
+
+<label>
+
+<input
+type="checkbox">
+
+Semantic Scholar
+
+</label>
+
+<label>
+
+<input
+type="checkbox">
+
+Crossref
+
+</label>
+
+<label>
+
+<input
+type="checkbox">
+
+PubMed
+
+</label>
+
+</div>
+
+</div>
+
+<div id="loading"></div>
+
+<div id="results"></div>
+
+</div>
+
+<script type="module" src="js/app.js"></script>
+
+</body>
+
+</html>
