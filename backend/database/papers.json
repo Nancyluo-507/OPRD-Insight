@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "title": "Large Language Models Survey",
+    "year": 2025,
+    "authors": [
+      "OpenAI Research"
+    ],
+    "abstract": "A survey about large language models."
+  },
+  {
+    "id": 2,
+    "title": "AI Agent Research",
+    "year": 2025,
+    "authors": [
+      "MIT"
+    ],
+    "abstract": "Research about autonomous AI agents."
+  }
+]
