@@ -215,6 +215,7 @@ if __name__ == "__main__":
         )
         print(type(papers))
         print(len(papers))
+
         print(type(papers[0]))
 
     except requests.exceptions.RequestException as e:

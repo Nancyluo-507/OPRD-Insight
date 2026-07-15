@@ -1,5 +1,5 @@
-from services.translator import translate_query
-from services.semantic_match import expand_query
+from backend.services.core.translator import translate_query
+from backend.services.core.semantic_match import expand_query
 
 
 # ============================================================
