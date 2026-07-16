@@ -314,3 +314,400 @@ header p{
     background:#1d4ed8;
 
 }
+/* ===============================
+   ChemAI Highlight
+================================ */
+
+mark{
+
+    background: transparent !important;
+
+    color: inherit !important;
+
+    font-weight: 700;
+
+    padding: 0;
+
+    border-radius: 0;
+
+}
+/* ===============================
+   Keywords
+================================ */
+
+.keyword-line{
+
+    display:flex;
+
+    align-items:flex-start;
+
+    flex-wrap:wrap;
+
+    gap:10px;
+
+    margin-bottom:12px;
+
+}
+
+.keyword-line b{
+
+    color:#475569;
+
+    white-space:nowrap;
+
+}
+
+.keyword-list{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+    flex:1;
+
+}
+.keyword-list{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:10px;
+
+}
+
+.keyword-tag{
+
+    background:#eef4ff;
+
+    color:#2563eb;
+
+    border:1px solid #dbeafe;
+
+    border-radius:999px;
+
+    padding:6px 14px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+.keyword-more{
+
+    background:#f1f5f9;
+
+    color:#64748b;
+
+    border-radius:999px;
+
+    padding:6px 14px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+/* ======================================
+   Paper Card
+====================================== */
+
+.paper-card{
+
+    transition:.25s;
+
+}
+
+.paper-card:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 12px 35px rgba(0,0,0,.12);
+
+}
+
+/* ======================================
+   Keywords
+====================================== */
+
+.keyword-line{
+
+    display:flex;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+    margin-top:14px;
+
+    margin-bottom:14px;
+
+}
+
+.keyword-list{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+}
+
+.keyword-tag{
+
+    background:#eff6ff;
+
+    color:#2563eb;
+
+    border:1px solid #bfdbfe;
+
+    border-radius:999px;
+
+    padding:4px 12px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+.keyword-more{
+
+    background:#e2e8f0;
+
+    color:#475569;
+
+    border-radius:999px;
+
+    padding:4px 10px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+/* ======================================
+   Abstract
+====================================== */
+
+.abstract-line{
+
+    margin-top:18px;
+
+    line-height:1.9;
+
+    color:#475569;
+
+}
+
+.abstract-text{
+
+    color:#475569;
+
+}
+
+.abstract-text strong{
+
+    font-weight:700;
+
+    color:inherit;
+
+    background:none;
+
+}
+
+/* 防止后台返回 mark */
+
+.abstract-text mark{
+
+    background:none;
+
+    color:inherit;
+
+    font-weight:700;
+
+}
+
+/* ======================================
+   Read More
+====================================== */
+
+.read-more{
+
+    margin-left:8px;
+
+    color:#2563eb;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    user-select:none;
+
+}
+
+.read-more:hover{
+
+    text-decoration:underline;
+
+}
+
+/* ======================================
+   Links
+====================================== */
+
+.links{
+
+    margin-top:20px;
+
+    display:flex;
+
+    gap:12px;
+
+}
+
+.links a{
+
+    transition:.2s;
+
+}
+
+.links a:hover{
+
+    transform:translateY(-2px);
+
+}
+.keyword-highlight{
+
+    font-weight:700;
+
+    color:#1d4ed8;
+
+    background:none;
+
+}
+/* ======================================
+   Abstract Highlight
+====================================== */
+
+.keyword-highlight{
+
+    font-weight:700;
+
+    color:#1d4ed8;
+
+    background:none;
+
+}
+
+.abstract-text strong{
+
+    font-weight:700;
+
+    color:#1d4ed8;
+
+    background:none;
+
+}
+
+.abstract-text mark{
+
+    background:none;
+
+    color:#1d4ed8;
+
+    font-weight:700;
+
+}
+/* =====================================
+   SPA Navigation
+===================================== */
+
+.page{
+
+    display:none;
+
+    animation:fadeIn .25s ease;
+
+}
+
+.active-page{
+
+    display:block;
+
+}
+
+@keyframes fadeIn{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(8px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+/* =====================================
+   Sidebar Active
+===================================== */
+
+.sidebar ul li{
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    border-radius:10px;
+
+}
+
+.sidebar ul li:hover{
+
+    background:#edf4ff;
+
+}
+
+.sidebar ul li.active{
+
+    background:#2b7cff;
+
+    color:#fff;
+
+    font-weight:600;
+
+}
+
+/* =====================================
+   Placeholder Pages
+===================================== */
+
+.page h2{
+
+    margin-bottom:20px;
+
+}
+
+.page p{
+
+    font-size:16px;
+
+    color:#666;
+
+}

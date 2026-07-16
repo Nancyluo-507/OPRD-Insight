@@ -47,6 +47,8 @@ def request_openalex(
 
     search_query: str,
 
+    cursor: str = "*",
+
     per_page: int = DEFAULT_PER_PAGE
 
 ):
@@ -59,7 +61,9 @@ def request_openalex(
 
             "search": search_query,
 
-            "per-page": per_page
+            "per-page": per_page,
+
+            "cursor": cursor
 
         },
 
@@ -69,9 +73,37 @@ def request_openalex(
 
     response.raise_for_status()
 
-    return response.json()
+    data = response.json()
 
+    next_cursor = (
 
+        data
+
+        .get("meta", {})
+
+        .get("next_cursor")
+
+    )
+
+    total_count = (
+
+        data
+
+        .get("meta", {})
+
+        .get("count", 0)
+
+    )
+
+    return (
+
+        data,
+
+        next_cursor,
+
+        total_count
+
+    )
 # ==========================================================
 # Search
 # ==========================================================
@@ -80,9 +112,11 @@ def search_openalex(
 
     query: str,
 
+    cursor: str = "*",
+
     per_page: int = DEFAULT_PER_PAGE
 
-) -> List[Paper]:
+):
 
     query_info = process_query(
 
@@ -96,11 +130,13 @@ def search_openalex(
 
     ]
 
-    data = request_openalex(
+    data, next_cursor, total_count = request_openalex(
 
-        search_query,
+        search_query=search_query,
 
-        per_page
+        cursor=cursor,
+
+        per_page=per_page
 
     )
 
@@ -113,6 +149,7 @@ def search_openalex(
     )
 
     papers = []
+
     # ======================================================
     # Parse OpenAlex Papers
     # ======================================================
@@ -175,125 +212,12 @@ def search_openalex(
 
         )
 
-    return result
-# ==========================================================
-# Main
-# ==========================================================
+    return (
 
-if __name__ == "__main__":
+        result,
 
-    print()
+        next_cursor,
 
-    print("=" * 60)
+        total_count
 
-    print("OpenAlex Search Test")
-
-    print("=" * 60)
-
-    print()
-
-    query = input(
-
-        "Please enter your query: "
-
-    ).strip()
-
-    if not query:
-
-        print()
-
-        print("Query cannot be empty.")
-
-        exit()
-
-    try:
-
-        papers = search_openalex(
-
-            query
-
-        )
-        print(type(papers))
-        print(len(papers))
-
-        print(type(papers[0]))
-
-    except requests.exceptions.RequestException as e:
-
-        print()
-
-        print("Network Error:")
-
-        print(e)
-
-        exit()
-
-    except Exception as e:
-
-        print()
-
-        print("Search Error:")
-
-        print(e)
-
-        exit()
-
-    print()
-
-    print("=" * 60)
-
-    print(f"Found {len(papers)} papers")
-
-    print("=" * 60)
-
-    print()
-
-    for index, paper in enumerate(
-
-        papers,
-
-        start=1
-
-    ):
-
-        print(f"[{index}]")
-
-        print(f"Score      : {paper.score}")
-
-        print(f"Title      : {paper.title}")
-
-        print(f"Authors    : {paper.authors}")
-
-        print(f"Journal    : {paper.journal}")
-
-        print(f"Year       : {paper.year}")
-
-        print(f"Citations  : {paper.citation}")
-
-        print(f"DOI        : {paper.doi}")
-
-        print(f"DOI URL    : {paper.doi_url}")
-
-        print(f"PDF URL    : {paper.pdf_url}")
-
-        print(f"Open Access: {paper.is_open_access}")
-
-        if paper.matched_keywords:
-
-            print(
-
-                "Matched    :",
-
-                ", ".join(
-
-                    paper.matched_keywords
-
-                )
-
-            )
-
-        print("-" * 60)
-
-    print()
-
-    print("Finished.")
+    )

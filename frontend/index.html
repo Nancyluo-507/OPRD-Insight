@@ -31,26 +31,30 @@ href="css/style.css">
 
     </div>
 
-    <ul>
+    <ul id="navMenu">
 
-        <li class="active">
-            🔍 文献检索
+        <li class="active" data-page="search-page">
+            📚 Literature Search
         </li>
 
-        <li>
-            🧠 AI总结
+        <li data-page="favorites-page">
+            ⭐ Favorites
         </li>
 
-        <li>
-            🧪 PubChem
+        <li data-page="history-page">
+            🕘 History
         </li>
 
-        <li>
-            ⭐ 收藏
+        <li data-page="subscription-page">
+            📬 Subscription
         </li>
 
-        <li>
-            ⚙ 设置
+        <li data-page="email-page">
+            📨 Email Push
+        </li>
+
+        <li data-page="settings-page">
+            ⚙ Settings
         </li>
 
     </ul>
@@ -61,88 +65,117 @@ href="css/style.css">
 
 <div class="container">
 
-<header>
+    <!-- ================= Search ================= -->
 
-<h1>
+    <div
+    id="search-page"
+    class="page active-page">
 
-ChemAI 智能文献发现平台
+        <header>
 
-</h1>
+            <h1>
 
-<p>
+                ChemAI 智能文献发现平台
 
-OpenAlex · Semantic Scholar · Crossref · PubMed
+            </h1>
 
-</p>
+            <p>
 
-</header>
+                Integrated Literature Search & Discovery Platform
 
-<div class="search-panel">
+            </p>
 
-<div class="search-input">
+        </header>
 
-<input
+        <div class="search-panel">
 
-id="keyword"
+            <div class="search-input">
 
-placeholder="请输入关键词，例如 electrocatalyst membrane">
+                <input
 
-<button id="searchBtn">
+                id="keyword"
 
-搜索
+                placeholder="请输入关键词，例如 electrocatalyst membrane">
 
-</button>
+                <button id="searchBtn">
+
+                    搜索
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div id="loading"></div>
+
+        <div id="results"></div>
+
+    </div>
+
+    <!-- ================= Favorites ================= -->
+
+    <div
+    id="favorites-page"
+    class="page">
+
+        <h2>⭐ Favorites</h2>
+
+        <p>这里将显示收藏的论文卡片。</p>
+
+    </div>
+
+    <!-- ================= History ================= -->
+
+    <div
+    id="history-page"
+    class="page">
+
+        <h2>🕘 History</h2>
+
+        <p>这里将显示浏览历史。</p>
+
+    </div>
+
+    <!-- ================= Subscription ================= -->
+
+    <div
+    id="subscription-page"
+    class="page">
+
+        <h2>📬 Subscription</h2>
+
+        <p>这里管理研究方向和邮件订阅。</p>
+
+    </div>
+
+    <!-- ================= Email ================= -->
+
+    <div
+    id="email-page"
+    class="page">
+
+        <h2>📨 Email Push</h2>
+
+        <p>这里查看历史邮件和推送记录。</p>
+
+    </div>
+
+    <!-- ================= Settings ================= -->
+
+    <div
+    id="settings-page"
+    class="page">
+
+        <h2>⚙ Settings</h2>
+
+        <p>系统配置。</p>
+
+    </div>
 
 </div>
 
-<div class="source-list">
-
-<label>
-
-<input
-checked
-type="checkbox">
-
-OpenAlex
-
-</label>
-
-<label>
-
-<input
-type="checkbox">
-
-Semantic Scholar
-
-</label>
-
-<label>
-
-<input
-type="checkbox">
-
-Crossref
-
-</label>
-
-<label>
-
-<input
-type="checkbox">
-
-PubMed
-
-</label>
-
-</div>
-
-</div>
-
-<div id="loading"></div>
-
-<div id="results"></div>
-
-</div>
+<script type="module" src="js/navigation.js"></script>
 
 <script type="module" src="js/app.js"></script>
 

@@ -1,4 +1,5 @@
 import { searchPaper } from "./api.js";
+import { renderResults } from "./render.js";
 
 // ================================
 // ChemAI Frontend
@@ -21,11 +22,8 @@ if (!loading) {
     loading.id = "loading";
 
     results.parentNode.insertBefore(
-
         loading,
-
         results
-
     );
 
 }
@@ -35,20 +33,15 @@ if (!loading) {
 // ================================
 
 searchBtn.addEventListener(
-
     "click",
-
     startSearch
-
 );
 
 keywordInput.addEventListener(
-
     "keydown",
+    function(e){
 
-    function (e) {
-
-        if (e.key === "Enter") {
+        if(e.key==="Enter"){
 
             startSearch();
 
@@ -62,11 +55,11 @@ keywordInput.addEventListener(
 // Search
 // ================================
 
-async function startSearch() {
+async function startSearch(){
 
     const keyword = keywordInput.value.trim();
 
-    if (keyword === "") {
+    if(keyword===""){
 
         alert("请输入关键词");
 
@@ -82,19 +75,15 @@ async function startSearch() {
 
     searchBtn.innerText = "Searching...";
 
-    try {
+    try{
 
-        const data = await searchPaper(
-
-            keyword
-
-        );
-
-        console.log(data);
+        const data = await searchPaper(keyword);
 
         loading.innerHTML = "";
 
-        showResults(
+        renderResults(
+
+            results,
 
             data.results
 
@@ -102,7 +91,7 @@ async function startSearch() {
 
     }
 
-    catch (err) {
+    catch(err){
 
         console.error(err);
 
@@ -125,127 +114,5 @@ async function startSearch() {
     searchBtn.disabled = false;
 
     searchBtn.innerText = "搜索";
-
-}
-
-// ================================
-// Show Results
-// ================================
-
-function showResults(papers) {
-
-    results.innerHTML = "";
-
-    if (!papers || papers.length === 0) {
-
-        results.innerHTML = `
-
-            <div class="paper-card">
-
-                <h2>没有找到文献</h2>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-    papers.forEach(
-
-        paper => {
-
-            const card = document.createElement(
-
-                "div"
-
-            );
-
-            card.className = "paper-card";
-
-            card.innerHTML = `
-
-                <h2>
-
-                    ${paper.title || ""}
-
-                </h2>
-
-                <p>
-
-                    <b>Score：</b>
-
-                    ${paper.score ?? "-"}
-
-                </p>
-
-                <p>
-
-                    <b>Authors：</b>
-
-                    ${paper.authors || "-"}
-
-                </p>
-
-                <p>
-
-                    <b>Journal：</b>
-
-                    ${paper.journal || "-"}
-
-                </p>
-
-                <p>
-
-                    <b>Year：</b>
-
-                    ${paper.year || "-"}
-
-                </p>
-
-                <p>
-
-                    <b>Citations：</b>
-
-                    ${paper.citation || 0}
-
-                </p>
-
-                <div class="links">
-
-                    ${
-
-                        paper.doi_url
-
-                        ? `<a href="${paper.doi_url}" target="_blank">DOI</a>`
-
-                        : ""
-
-                    }
-
-                    ${
-
-                        paper.pdf_url
-
-                        ? `<a href="${paper.pdf_url}" target="_blank">PDF</a>`
-
-                        : ""
-
-                    }
-
-                </div>
-
-            `;
-
-            results.appendChild(
-
-                card
-
-            );
-
-        }
-
-    );
 
 }

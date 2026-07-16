@@ -100,9 +100,11 @@ def search(
 
 ):
 
-    papers = search_openalex(
+    papers, next_cursor, total_count = search_openalex(
 
         q,
+
+        cursor="*",
 
         per_page=limit
 
@@ -167,6 +169,10 @@ def search(
 
         "count": len(result),
 
+        "total": total_count,
+
+        "next_cursor": next_cursor,
+
         "results": result
 
     }
@@ -191,3 +197,21 @@ if __name__ == "__main__":
         reload=True
 
     )
+from fastapi.responses import HTMLResponse
+
+from services.email.daily_email import build_daily_email
+# ==========================================================
+# Daily Email
+# ==========================================================
+
+@app.get(
+
+    "/daily-email",
+
+    response_class=HTMLResponse
+
+)
+
+def daily_email():
+
+    return build_daily_email()

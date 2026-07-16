@@ -1,0 +1,27 @@
+{
+    "email": "your_email@example.com",
+
+    "keywords": [
+
+        "electrocatalysis",
+
+        "CO2 reduction",
+
+        "membrane",
+
+        "MOF"
+
+    ],
+
+    "top_k": 10,
+
+    "sources": [
+
+        "Nature"
+
+    ],
+
+    "language": "en",
+
+    "send_time": "09:00"
+}
