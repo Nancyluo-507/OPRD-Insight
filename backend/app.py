@@ -1,7 +1,14 @@
 from fastapi import FastAPI
+
 from fastapi.middleware.cors import CORSMiddleware
 
-from services.sources.openalex import search_openalex
+from fastapi.responses import HTMLResponse
+
+
+from services.search.search_service import search_papers
+
+from services.email.daily_email import build_daily_email
+
 
 
 # ==========================================================
@@ -15,6 +22,7 @@ app = FastAPI(
     version="1.0.0"
 
 )
+
 
 
 # ==========================================================
@@ -48,6 +56,7 @@ app.add_middleware(
 )
 
 
+
 # ==========================================================
 # Home
 # ==========================================================
@@ -69,6 +78,7 @@ def home():
     }
 
 
+
 # ==========================================================
 # Health Check
 # ==========================================================
@@ -86,6 +96,7 @@ def health():
     }
 
 
+
 # ==========================================================
 # Search
 # ==========================================================
@@ -96,110 +107,194 @@ def search(
 
     q: str,
 
-    limit: int = 20
+    limit: int = 50,
+
+    cursor: str = "*"
 
 ):
 
-    papers, next_cursor, total_count = search_openalex(
 
-        q,
+    data = search_papers(
 
-        cursor="*",
+        query=q,
 
-        per_page=limit
+        page_size=limit,
+
+        cursor=cursor
 
     )
 
+
+
+    papers = data["papers"]
+
+
+    next_cursor = data["next_cursor"]
+
+
+    total_count = data["total_count"]
+
+
+
     result = []
+
+
+
     for paper in papers:
+
 
         result.append(
 
             {
 
+
                 "score": paper.score,
+
 
                 "title": paper.title,
 
-                "highlighted_title": paper.highlighted_title,
 
-                "authors": paper.authors,
+                "highlighted_title":
 
-                "journal": paper.journal,
+                    paper.highlighted_title,
 
-                "publisher": paper.publisher,
 
-                "year": paper.year,
+                "authors":
 
-                "publication_date": paper.publication_date,
+                    paper.authors,
 
-                "abstract": paper.abstract,
 
-                "highlighted_abstract": paper.highlighted_abstract,
+                "journal":
 
-                "keywords": paper.keywords,
+                    paper.journal,
 
-                "subjects": paper.subjects,
 
-                "matched_keywords": paper.matched_keywords,
+                "publisher":
 
-                "citation": paper.citation,
+                    paper.publisher,
 
-                "doi": paper.doi,
 
-                "doi_url": paper.doi_url,
+                "year":
 
-                "pdf_url": paper.pdf_url,
+                    paper.year,
 
-                "url": paper.url,
 
-                "language": paper.language,
+                "publication_date":
 
-                "is_open_access": paper.is_open_access,
+                    paper.publication_date,
 
-                "source": paper.source
+
+                "abstract":
+
+                    paper.abstract,
+
+
+                "highlighted_abstract":
+
+                    paper.highlighted_abstract,
+
+
+                "keywords":
+
+                    paper.keywords,
+
+
+                "subjects":
+
+                    paper.subjects,
+
+
+                "matched_keywords":
+
+                    paper.matched_keywords,
+
+
+                "citation":
+
+                    paper.citation,
+
+
+                "doi":
+
+                    paper.doi,
+
+
+                "doi_url":
+
+                    paper.doi_url,
+
+
+                "pdf_url":
+
+                    paper.pdf_url,
+
+
+                "url":
+
+                    paper.url,
+
+
+                "language":
+
+                    paper.language,
+
+
+                "is_open_access":
+
+                    paper.is_open_access,
+
+
+                "source":
+
+                    paper.source
+
 
             }
 
         )
 
+
+
     return {
+
 
         "query": q,
 
-        "count": len(result),
 
-        "total": total_count,
+        "count":
 
-        "next_cursor": next_cursor,
+            len(result),
 
-        "results": result
+
+        "total":
+
+            total_count,
+
+
+        # 当前请求使用的cursor
+
+        "cursor":
+
+            cursor,
+
+
+        # 下一页需要使用的cursor
+
+        "next_cursor":
+
+            next_cursor,
+
+
+        "results":
+
+            result
+
 
     }
 
 
-# ==========================================================
-# Run
-# ==========================================================
 
-if __name__ == "__main__":
 
-    import uvicorn
-
-    uvicorn.run(
-
-        "app:app",
-
-        host="127.0.0.1",
-
-        port=8000,
-
-        reload=True
-
-    )
-from fastapi.responses import HTMLResponse
-
-from services.email.daily_email import build_daily_email
 # ==========================================================
 # Daily Email
 # ==========================================================
@@ -215,3 +310,27 @@ from services.email.daily_email import build_daily_email
 def daily_email():
 
     return build_daily_email()
+
+
+
+# ==========================================================
+# Run
+# ==========================================================
+
+if __name__ == "__main__":
+
+
+    import uvicorn
+
+
+    uvicorn.run(
+
+        "app:app",
+
+        host="127.0.0.1",
+
+        port=8000,
+
+        reload=True
+
+    )

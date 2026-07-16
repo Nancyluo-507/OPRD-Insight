@@ -1,101 +1,217 @@
 import { searchPaper } from "./api.js";
-import { renderResults } from "./render.js";
+
+
+import {
+
+    setPapers
+
+}
+from "./pagination.js";
+
+
+import {
+
+    initPagination,
+
+    renderCurrentPage
+
+}
+from "./pagination_controller.js";
+
+
 
 // ================================
 // ChemAI Frontend
 // ================================
 
-const keywordInput = document.getElementById("keyword");
-const searchBtn = document.getElementById("searchBtn");
-const results = document.getElementById("results");
+
+const keywordInput =
+    document.getElementById("keyword");
+
+
+const searchBtn =
+    document.getElementById("searchBtn");
+
+
+const results =
+    document.getElementById("results");
+
+
 
 // ================================
 // Loading
 // ================================
 
-let loading = document.getElementById("loading");
+
+let loading =
+    document.getElementById("loading");
+
 
 if (!loading) {
 
-    loading = document.createElement("div");
 
-    loading.id = "loading";
+    loading =
+
+        document.createElement("div");
+
+
+    loading.id =
+
+        "loading";
+
 
     results.parentNode.insertBefore(
+
         loading,
+
         results
+
     );
 
 }
+
+
 
 // ================================
 // Event
 // ================================
 
+
 searchBtn.addEventListener(
+
     "click",
+
     startSearch
+
 );
 
+
+
 keywordInput.addEventListener(
+
     "keydown",
+
     function(e){
 
-        if(e.key==="Enter"){
+
+        if(e.key === "Enter"){
+
 
             startSearch();
 
+
         }
+
 
     }
 
 );
+
+
 
 // ================================
 // Search
 // ================================
 
+
 async function startSearch(){
 
-    const keyword = keywordInput.value.trim();
 
-    if(keyword===""){
+    const keyword =
+
+        keywordInput.value.trim();
+
+
+
+    if(keyword === ""){
+
 
         alert("请输入关键词");
 
+
         return;
+
 
     }
 
-    loading.innerHTML = "<h2>Searching...</h2>";
+
+
+    loading.innerHTML =
+
+        "<h2>Searching...</h2>";
+
+
 
     results.innerHTML = "";
 
+
+
     searchBtn.disabled = true;
 
-    searchBtn.innerText = "Searching...";
+
+
+    searchBtn.innerText =
+
+        "Searching...";
+
+
 
     try{
 
-        const data = await searchPaper(keyword);
+
+        const data =
+
+            await searchPaper(
+
+                keyword
+
+            );
+
+
 
         loading.innerHTML = "";
 
-        renderResults(
 
-            results,
+
+        // 保存50篇论文
+
+        setPapers(
 
             data.results
 
         );
 
+
+
+        // 初始化分页
+
+        initPagination(
+
+            results
+
+        );
+
+
+
+        // 显示第一页
+
+        renderCurrentPage();
+
+
+
     }
+
 
     catch(err){
 
+
         console.error(err);
 
+
+
         loading.innerHTML = "";
+
+
 
         results.innerHTML = `
 
@@ -109,10 +225,18 @@ async function startSearch(){
 
         `;
 
+
     }
+
+
 
     searchBtn.disabled = false;
 
-    searchBtn.innerText = "搜索";
+
+
+    searchBtn.innerText =
+
+        "搜索";
+
 
 }

@@ -19,7 +19,7 @@ from services.parsers.paper_parser import (
 
 OPENALEX_URL = "https://api.openalex.org/works"
 
-DEFAULT_PER_PAGE = 25
+DEFAULT_PER_PAGE = 50
 
 TIMEOUT = 30
 
