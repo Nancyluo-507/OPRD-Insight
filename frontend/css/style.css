@@ -33,6 +33,16 @@ body{
 
     width:260px;
 
+    height:100vh;
+
+    position:fixed;
+
+    top:0;
+
+    left:0;
+
+    overflow-y:auto;
+
     background:#0f172a;
 
     color:white;
@@ -44,7 +54,6 @@ body{
     padding:35px 25px;
 
 }
-
 .logo{
 
     margin-bottom:50px;
@@ -108,9 +117,11 @@ body{
 
     flex:1;
 
+    margin-left:260px;
+
     padding:40px 50px;
 
-    overflow-y:auto;
+    min-height:100vh;
 
 }
 
