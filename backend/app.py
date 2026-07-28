@@ -1,336 +1,99 @@
+import os
+import time
 from fastapi import FastAPI
-
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-from fastapi.responses import HTMLResponse
+# Must be first: load .env before any imports
+from config.settings import settings
+from utils.logger import log
+from utils.exceptions import register_exception_handlers
+from database.database import init_db
 
+app = FastAPI(title="ChemVigil Literature Platform", version="1.0.0")
 
-from services.search.search_service import search_papers
-
-from services.email.daily_email import build_daily_email
-
-
-
-# ==========================================================
-# FastAPI
-# ==========================================================
-
-app = FastAPI(
-
-    title="AI Literature Search Engine",
-
-    version="1.0.0"
-
-)
-
-
-
-# ==========================================================
-# CORS
-# ==========================================================
-
+# --- Middleware ---
 app.add_middleware(
-
     CORSMiddleware,
-
-    allow_origins=[
-
-        "*"
-
-    ],
-
+    allow_origins=settings.CORS_ORIGINS.split(","),
     allow_credentials=True,
-
-    allow_methods=[
-
-        "*"
-
-    ],
-
-    allow_headers=[
-
-        "*"
-
-    ]
-
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
+@app.middleware("http")
+async def request_logging(request, call_next):
+    t0 = time.perf_counter()
+    response = await call_next(request)
+    dur = int((time.perf_counter() - t0) * 1000)
+    if request.url.path.startswith("/api/"):
+        log.info(f"{request.method} {request.url.path} {response.status_code} {dur}ms")
+    return response
 
-# ==========================================================
-# Home
-# ==========================================================
 
-@app.get("/")
+# --- Exception handlers ---
+register_exception_handlers(app)
 
-def home():
+# --- Routers ---
+from routers.home import router as home_router
+from routers.auth import router as auth_router
+from routers.search import router as search_router
+from routers.user import router as user_router
+from routers.admin import router as admin_router
 
-    return {
+app.include_router(home_router)
+app.include_router(auth_router)
+app.include_router(search_router)
+app.include_router(user_router)
+app.include_router(admin_router)
 
-        "message":
+# --- Startup / Shutdown ---
 
-        "AI Literature Search Engine",
+@app.on_event("startup")
+def startup():
+    init_db()
 
-        "status":
+    # Preload embedding model so first search isn't slow
+    from services.core.embedding_match import _get_transformer
+    _get_transformer()
+    log.info("Embedding model loaded")
 
-        "running"
+    from services.core.job_worker import worker as job_worker
+    job_worker.start()
+    from services.email.scheduler import start_scheduler
+    start_scheduler()
+    log.info("Database initialized, job worker & scheduler started")
 
-    }
 
+@app.on_event("shutdown")
+def shutdown():
+    from services.core.job_worker import worker as job_worker
+    job_worker.stop()
+    from services.email.scheduler import stop_scheduler
+    stop_scheduler()
 
 
-# ==========================================================
-# Health Check
-# ==========================================================
+# --- Frontend Static Files (no-cache) ---
 
-@app.get("/health")
+_frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
 
-def health():
+if os.path.isdir(_frontend_dir):
 
-    return {
+    class NoCacheStaticFiles(StaticFiles):
+        def file_response(self, *args, **kwargs):
+            resp = super().file_response(*args, **kwargs)
+            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp.headers["Pragma"] = "no-cache"
+            resp.headers["Expires"] = "0"
+            return resp
 
-        "status":
+    app.mount("/app", NoCacheStaticFiles(directory=_frontend_dir, html=True), name="frontend")
+    log.info("Frontend mounted at /app (no-cache)")
 
-        "ok"
 
-    }
-
-
-
-# ==========================================================
-# Search
-# ==========================================================
-
-@app.get("/search")
-
-def search(
-
-    q: str,
-
-    limit: int = 50,
-
-    cursor: str = "*"
-
-):
-
-
-    data = search_papers(
-
-        query=q,
-
-        page_size=limit,
-
-        cursor=cursor
-
-    )
-
-
-
-    papers = data["papers"]
-
-
-    next_cursor = data["next_cursor"]
-
-
-    total_count = data["total_count"]
-
-
-
-    result = []
-
-
-
-    for paper in papers:
-
-
-        result.append(
-
-            {
-
-
-                "score": paper.score,
-
-
-                "title": paper.title,
-
-
-                "highlighted_title":
-
-                    paper.highlighted_title,
-
-
-                "authors":
-
-                    paper.authors,
-
-
-                "journal":
-
-                    paper.journal,
-
-
-                "publisher":
-
-                    paper.publisher,
-
-
-                "year":
-
-                    paper.year,
-
-
-                "publication_date":
-
-                    paper.publication_date,
-
-
-                "abstract":
-
-                    paper.abstract,
-
-
-                "highlighted_abstract":
-
-                    paper.highlighted_abstract,
-
-
-                "keywords":
-
-                    paper.keywords,
-
-
-                "subjects":
-
-                    paper.subjects,
-
-
-                "matched_keywords":
-
-                    paper.matched_keywords,
-
-
-                "citation":
-
-                    paper.citation,
-
-
-                "doi":
-
-                    paper.doi,
-
-
-                "doi_url":
-
-                    paper.doi_url,
-
-
-                "pdf_url":
-
-                    paper.pdf_url,
-
-
-                "url":
-
-                    paper.url,
-
-
-                "language":
-
-                    paper.language,
-
-
-                "is_open_access":
-
-                    paper.is_open_access,
-
-
-                "source":
-
-                    paper.source
-
-
-            }
-
-        )
-
-
-
-    return {
-
-
-        "query": q,
-
-
-        "count":
-
-            len(result),
-
-
-        "total":
-
-            total_count,
-
-
-        # 当前请求使用的cursor
-
-        "cursor":
-
-            cursor,
-
-
-        # 下一页需要使用的cursor
-
-        "next_cursor":
-
-            next_cursor,
-
-
-        "results":
-
-            result
-
-
-    }
-
-
-
-
-# ==========================================================
-# Daily Email
-# ==========================================================
-
-@app.get(
-
-    "/daily-email",
-
-    response_class=HTMLResponse
-
-)
-
-def daily_email():
-
-    return build_daily_email()
-
-
-
-# ==========================================================
-# Run
-# ==========================================================
+# --- Run ---
 
 if __name__ == "__main__":
-
-
     import uvicorn
-
-
-    uvicorn.run(
-
-        "app:app",
-
-        host="127.0.0.1",
-
-        port=8000,
-
-        reload=True
-
-    )
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)

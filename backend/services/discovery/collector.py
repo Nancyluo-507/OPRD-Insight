@@ -2,25 +2,11 @@ from typing import List
 
 from services.models.rss_paper import RSSPaper
 
-from services.sources.rss.nature import fetch_nature
-from services.sources.rss.acs import fetch_acs
+from services.sources.rss.collector import collect_all_journals
 
 
 # ==========================================================
-# Registered RSS Sources
-# ==========================================================
-
-RSS_SOURCES = [
-
-    fetch_nature,
-
-    fetch_acs,
-
-]
-
-
-# ==========================================================
-# Collect All RSS Papers
+# Collect All RSS Papers (from all 59 journals in DB)
 # ==========================================================
 
 def collect_all(
@@ -29,33 +15,13 @@ def collect_all(
 
 ) -> List[RSSPaper]:
 
-    papers = []
+    papers = collect_all_journals(limit=limit, timeout=120)
 
-    for source in RSS_SOURCES:
-
-        try:
-
-            papers.extend(
-
-                source(limit)
-
-            )
-
-        except Exception as e:
-
-            print(
-
-                f"[RSS ERROR] {source.__name__}: {e}"
-
-            )
-
-    print("=" * 80)
-
-    print(type(papers[0]))
-
-    print(vars(papers[0]))
-
-    print("=" * 80)
+    if papers:
+        print("=" * 80)
+        print(type(papers[0]))
+        print(vars(papers[0]))
+        print("=" * 80)
 
     return papers
 

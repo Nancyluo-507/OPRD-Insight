@@ -1,4 +1,6 @@
-import { searchPaper } from "./api.js";
+import { searchPaper, listFavorites } from "./api.js";
+
+import { setFavorites } from "./render.js";
 
 
 import {
@@ -6,6 +8,7 @@ import {
     setPapers
 
 }
+
 from "./pagination.js";
 
 
@@ -16,18 +19,21 @@ import {
     renderCurrentPage
 
 }
+
 from "./pagination_controller.js";
 
-
+import { getUserId, isLoggedIn } from "./auth.js";
 
 // ================================
-// ChemAI Frontend
+// ChemVigil Frontend
 // ================================
 
 
 const keywordInput =
     document.getElementById("keyword");
 
+const timeRangeSelect =
+    document.getElementById("timeRange");
 
 const searchBtn =
     document.getElementById("searchBtn");
@@ -47,31 +53,25 @@ let loading =
     document.getElementById("loading");
 
 
-if (!loading) {
 
 
-    loading =
+// ================================
+// User & Favorites
+// ================================
 
-        document.createElement("div");
+let _appUserId = null;
 
-
-    loading.id =
-
-        "loading";
-
-
-    results.parentNode.insertBefore(
-
-        loading,
-
-        results
-
-    );
-
-}
-
-
-
+(async function initApp() {
+    if (!isLoggedIn()) return;
+    _appUserId = getUserId();
+    try {
+        const favData = await listFavorites(_appUserId);
+        const dois = (favData.articles || []).map(a => a.doi).filter(Boolean);
+        setFavorites(_appUserId, dois);
+    } catch (e) {
+        console.warn("Failed to load favorites:", e);
+    }
+})();
 // ================================
 // Event
 // ================================
@@ -113,9 +113,15 @@ keywordInput.addEventListener(
 // Search
 // ================================
 
+let _lastController = null;
 
 async function startSearch(){
 
+    if (_lastController) {
+        _lastController.abort();
+    }
+    _lastController = new AbortController();
+    const signal = _lastController.signal;
 
     const keyword =
 
@@ -159,14 +165,28 @@ async function startSearch(){
     try{
 
 
+        const tr = timeRangeSelect ? timeRangeSelect.value : "all";
+
         const data =
 
             await searchPaper(
 
-                keyword
+                keyword,
+                tr,
+                signal
 
             );
 
+        // Refresh favorites before rendering
+        const uid = _appUserId || parseInt(localStorage.getItem("chemvigil_user_id")) || null;
+        if (uid) {
+            _appUserId = uid;
+            try {
+                const favData = await listFavorites(uid);
+                const dois = (favData.articles || []).map(a => a.doi).filter(Boolean);
+                setFavorites(uid, dois);
+            } catch (e) {}
+        }
 
 
         loading.innerHTML = "";
@@ -204,6 +224,7 @@ async function startSearch(){
 
     catch(err){
 
+        if (err.name === "AbortError") return;
 
         console.error(err);
 

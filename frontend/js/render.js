@@ -2,6 +2,8 @@
 // render.js
 // =====================================
 
+import { saveUserArticle } from "./api.js";
+
 function buildKeywordHTML(keywords){
 
     if(!keywords || keywords.length===0){
@@ -106,27 +108,28 @@ function buildAbstractHTML(paper){
 
 }
 
+let _userId = null;
+let _favDois = new Set();
+
+export function setFavorites(userId, favDois) {
+    _userId = userId;
+    _favDois = new Set(favDois || []);
+}
+
 export function renderPaperCard(paper){
 
     const card=document.createElement("div");
 
     card.className="paper-card";
 
+    const isFav = _favDois.has(paper.doi);
+    const starChar = isFav ? "★" : "☆";
+
     const keywordHTML=buildKeywordHTML(
 
         paper.keywords
 
     );
-
-    let abstract = paper.highlighted_abstract || paper.abstract || "";
-
-    abstract = abstract.replace(
-
-        /<mark>(.*?)<\/mark>/gi,
-
-        '<span class="keyword-highlight">$1</span>'
-
-);
 
     const abstractHTML = buildAbstractHTML(
 
@@ -135,12 +138,14 @@ export function renderPaperCard(paper){
     );
 
     card.innerHTML=`
-
-        <h2>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <h2 style="flex:1;">
 
             ${paper.title||""}
 
-        </h2>
+            </h2>
+            <span class="star-btn" data-doi="${paper.doi || ""}" style="font-size:20px;cursor:pointer;user-select:none;line-height:1;margin-left:12px;color:${isFav ? "#f59e0b" : "#94a3b8"};">${starChar}</span>
+        </div>
 
         <p>
 
@@ -256,6 +261,32 @@ if(readMore){
     });
 
 }
+
+    const starEl = card.querySelector(".star-btn");
+    if (starEl) {
+        starEl.addEventListener("click", async () => {
+            const doi = starEl.dataset.doi;
+            if (!doi) return;
+            if (!_userId) return;
+            const isFav = _favDois.has(doi);
+            try {
+                const data = await saveUserArticle(_userId, doi, !isFav, paper.title);
+                if (data.is_favorite) {
+                    starEl.style.color = "#f59e0b";
+                    starEl.textContent = "★";
+                    _favDois.add(doi);
+                } else {
+                    starEl.style.color = "#94a3b8";
+                    starEl.textContent = "☆";
+                    _favDois.delete(doi);
+                }
+            } catch (e) {
+                console.error("Favorite toggle failed:", e);
+                starEl.textContent = "✗";
+                setTimeout(() => { starEl.textContent = isFav ? "★" : "☆"; }, 1500);
+            }
+        });
+    }
 
     return card;
 

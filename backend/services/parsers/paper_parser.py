@@ -330,6 +330,12 @@ def normalize_openalex_paper(
 
             ""
 
+        ) or (
+
+            str(work.get("publication_year", ""))
+            if work.get("publication_year")
+            else ""
+
         ),
 
         year=work.get(

@@ -175,6 +175,28 @@ header p{
 
 }
 
+.time-filter{
+    margin-top:12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:14px;
+    color:#475569;
+}
+.time-filter select{
+    padding:6px 12px;
+    border:1px solid #cbd5e1;
+    border-radius:8px;
+    font-size:14px;
+    background:white;
+    color:#1e293b;
+    cursor:pointer;
+}
+.time-filter select:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+
 .search-input{
 
     display:flex;
@@ -326,7 +348,7 @@ header p{
 
 }
 /* ===============================
-   ChemAI Highlight
+   ChemVigil Highlight
 ================================ */
 
 mark{
@@ -821,4 +843,209 @@ mark{
         rgba(37,99,235,.25);
 
 
+}
+
+/* =====================================
+   Dashboard Cards & Controls
+===================================== */
+
+.card{
+    background:white;
+    border-radius:18px;
+    padding:28px;
+    box-shadow:0 8px 30px rgba(15,23,42,0.08);
+}
+
+.btn{
+    height:42px;
+    padding:0 20px;
+    border:none;
+    border-radius:12px;
+    background:#2563eb;
+    color:white;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+    white-space:nowrap;
+}
+.btn:hover{
+    background:#1d4ed8;
+    transform:translateY(-1px);
+}
+.btn:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.input{
+    height:42px;
+    border:none;
+    outline:none;
+    background:#f8fafc;
+    border-radius:12px;
+    padding:0 16px;
+    font-size:15px;
+    color:#222;
+    transition:0.3s;
+}
+.input:focus{
+    background:white;
+    box-shadow:0 0 0 3px rgba(37,99,235,0.15);
+}
+
+.journal-item, .topic-item, .job-item, .match-item, .report-item, .article-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 16px;
+    border-radius:12px;
+    transition:0.2s;
+    gap:12px;
+}
+.journal-item:hover, .topic-item:hover, .job-item:hover, .match-item:hover, .report-item:hover, .article-item:hover{
+    background:#f8fafc;
+}
+.journal-item + .journal-item, .topic-item + .topic-item{
+    margin-top:4px;
+}
+.journal-name, .topic-name, .match-title, .report-title, .article-title{
+    font-weight:600;
+    color:#0f172a;
+    font-size:15px;
+}
+.journal-publisher, .topic-keywords, .article-meta{
+    font-size:13px;
+    color:#64748b;
+    margin-top:2px;
+}
+.follow-btn, .unfollow-btn, .delete-btn{
+    padding:8px 16px;
+    border:none;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s;
+    white-space:nowrap;
+}
+.follow-btn{
+    background:#eef4ff;
+    color:#2563eb;
+    border:1px solid #dbeafe;
+}
+.follow-btn:hover{
+    background:#2563eb;
+    color:white;
+}
+.follow-btn.following{
+    background:#16a34a;
+    color:white;
+    border:none;
+}
+.follow-btn.following:hover{
+    background:#15803d;
+}
+.unfollow-btn{
+    background:#fef2f2;
+    color:#dc2626;
+    border:1px solid #fecaca;
+}
+.unfollow-btn:hover{
+    background:#dc2626;
+    color:white;
+}
+.delete-btn{
+    background:#fef2f2;
+    color:#dc2626;
+    border:1px solid #fecaca;
+}
+.delete-btn:hover{
+    background:#dc2626;
+    color:white;
+}
+.topic-score{
+    font-size:13px;
+    font-weight:600;
+    color:#2563eb;
+}
+.report-date, .job-item{
+    font-size:13px;
+    color:#64748b;
+}
+.job-item strong{
+    color:#0f172a;
+}
+.match-title{
+    flex:1;
+}
+.match-item, .report-item{
+    cursor:pointer;
+}
+
+/* =====================================
+   Publisher Groups
+===================================== */
+
+.pub-group{
+    border-radius:12px;
+    overflow:hidden;
+    margin-bottom:6px;
+}
+.pub-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 16px;
+    background:#f1f5f9;
+    cursor:pointer;
+    border-radius:12px;
+    transition:0.2s;
+    user-select:none;
+}
+.pub-header:hover{
+    background:#e2e8f0;
+}
+.pub-header.open{
+    border-radius:12px 12px 0 0;
+}
+.pub-arrow{
+    font-size:12px;
+    color:#64748b;
+    width:16px;
+}
+.pub-name{
+    font-weight:700;
+    font-size:14px;
+    color:#0f172a;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+.pub-count{
+    margin-left:auto;
+    background:#e2e8f0;
+    color:#475569;
+    border-radius:999px;
+    padding:2px 10px;
+    font-size:12px;
+    font-weight:600;
+}
+.pub-body{
+    border:1px solid #f1f5f9;
+    border-top:none;
+    border-radius:0 0 12px 12px;
+    padding:4px 0;
+}
+
+/* =====================================
+   Star Button
+===================================== */
+
+.star-btn{
+    color:#94a3b8;
+    transition:0.2s;
+}
+.star-btn:hover{
+    transform:scale(1.2);
 }

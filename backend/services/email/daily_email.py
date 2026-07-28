@@ -62,7 +62,7 @@ def build_daily_email():
 
 <meta charset="utf-8">
 
-<title>ChemAI Daily Recommendation</title>
+<title>ChemVigil Daily Recommendation</title>
 
 <style>
 
@@ -148,7 +148,7 @@ body{{
 
 <div class="logo">
 
-ChemAI
+ChemVigil
 
 </div>
 
@@ -214,7 +214,7 @@ No RSS papers were collected today.
 
 <div class="footer">
 
-Generated automatically by ChemAI
+Generated automatically by ChemVigil
 
 </div>
 

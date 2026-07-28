@@ -9,15 +9,142 @@
 name="viewport"
 content="width=device-width,initial-scale=1.0">
 
-<title>ChemAI 智能文献发现平台</title>
+<title>ChemVigil 智能文献发现平台</title>
 
 <link
 rel="stylesheet"
 href="css/style.css">
 
+<style>
+/* Login Overlay */
+#loginOverlay {
+    position:fixed;inset:0;background:rgba(15,23,42,.8);display:flex;align-items:center;justify-content:center;z-index:1000;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+#loginOverlay.hidden { display:none; }
+.login-card {
+    background:white;border-radius:24px;padding:45px 40px 35px;width:400px;
+    box-shadow:0 30px 80px rgba(0,0,0,.35);
+    animation:loginFadeIn .5s ease;
+    position:relative;overflow:hidden;
+}
+.login-card::before {
+    content:'';position:absolute;top:0;left:0;right:0;height:4px;
+    background:linear-gradient(90deg,#2456c3,#3b82f6,#60a5fa);
+}
+@keyframes loginFadeIn {
+    from{opacity:0;transform:translateY(30px) scale(.97);}
+    to{opacity:1;transform:translateY(0) scale(1);}
+}
+.login-card .logo-area { text-align:center;margin-bottom:28px; }
+.login-card .logo-icon {
+    width:56px;height:56px;background:linear-gradient(135deg,#2456c3,#3b82f6);
+    border-radius:16px;display:flex;align-items:center;justify-content:center;
+    color:white;font-size:26px;font-weight:700;margin:0 auto 14px;
+    box-shadow:0 8px 24px rgba(36,86,195,.25);
+}
+.login-card h1 { color:#0f172a;font-size:22px;margin:0 0 4px;font-weight:700; }
+.login-card .subtitle { color:#64748b;font-size:13px;margin:0 0 20px; }
+.login-card .login-error {
+    color:#dc2626;font-size:13px;margin-bottom:12px;padding:10px 14px;
+    background:#fef2f2;border-radius:10px;display:none;text-align:center;
+    border:1px solid #fecaca;
+}
+.login-card .login-error.show { display:block; }
+.login-card .login-success {
+    color:#16a34a;font-size:13px;margin-bottom:12px;padding:10px 14px;
+    background:#f0fdf4;border-radius:10px;display:none;text-align:center;
+    border:1px solid #bbf7d0;
+}
+.login-card .login-success.show { display:block; }
+.login-card .form-group {
+    position:relative;margin-bottom:16px;
+}
+.login-card .form-group input {
+    width:100%;padding:14px 16px 14px 44px;border:2px solid #e2e8f0;border-radius:12px;
+    font-size:15px;box-sizing:border-box;transition:all .2s;background:#f8fafc;
+    color:#0f172a;
+}
+.login-card .form-group input:focus {
+    outline:none;border-color:#2456c3;background:white;
+    box-shadow:0 0 0 4px rgba(36,86,195,.1);
+}
+.login-card .form-group input::placeholder { color:#94a3b8; }
+.login-card .form-group .input-icon {
+    position:absolute;left:14px;top:50%;transform:translateY(-50%);
+    font-size:16px;color:#94a3b8;pointer-events:none;line-height:1;
+}
+.login-card .btn {
+    width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;
+    cursor:pointer;transition:all .2s;
+}
+.login-card .btn-primary {
+    background:linear-gradient(135deg,#2456c3,#3b82f6);color:white;
+    box-shadow:0 4px 16px rgba(36,86,195,.3);
+}
+.login-card .btn-primary:hover { transform:translateY(-1px);box-shadow:0 8px 24px rgba(36,86,195,.4); }
+.login-card .btn-primary:disabled { opacity:.6;cursor:not-allowed;transform:none;box-shadow:none; }
+.login-card .btn-ghost {
+    background:transparent;color:#2456c3;margin-top:6px;font-size:14px;
+}
+.login-card .btn-ghost:hover { background:#f1f5f9; }
+.login-card .tab-bar {
+    display:flex;background:#f1f5f9;border-radius:12px;padding:4px;margin-bottom:24px;
+}
+.login-card .tab {
+    flex:1;text-align:center;padding:10px;border-radius:10px;font-size:14px;
+    font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;
+}
+.login-card .tab.active { background:white;color:#0f172a;box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.login-card .tab:hover:not(.active) { color:#0f172a; }
+#verifyBanner {
+    display:none;padding:10px 16px;margin:0 0 16px;border-radius:12px;
+    font-size:13px;align-items:center;gap:8px;justify-content:space-between;
+}
+#verifyBanner.show { display:flex; }
+#verifyBanner.unverified { background:#fef2f2;color:#dc2626;border:1px solid #fecaca; }
+#verifyBanner.verified { background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0; }
+#verifyBanner .resend-btn { color:#2456c3;cursor:pointer;font-weight:600;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid #dbeafe;background:white;transition:.2s; }
+#verifyBanner .resend-btn:hover { background:#eff6ff; }
+</style>
+
 </head>
 
 <body>
+
+<!-- 登录弹窗 -->
+
+<div id="loginOverlay">
+    <div class="login-card">
+        <div class="logo-area">
+            <div class="logo-icon">C</div>
+            <h1>ChemVigil</h1>
+            <p class="subtitle">Intelligent Literature Discovery Platform</p>
+        </div>
+        <div id="loginError" class="login-error"></div>
+        <div id="loginSuccess" class="login-success"></div>
+        <div class="tab-bar">
+            <div id="tabLogin" class="tab active" data-tab="login">Sign In</div>
+            <div id="tabRegister" class="tab" data-tab="register">Register</div>
+        </div>
+        <div id="authForm">
+            <div class="form-group">
+                <span class="input-icon">👤</span>
+                <input id="authName" placeholder="Username" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <span class="input-icon">🔑</span>
+                <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
+            </div>
+            <div class="form-group" id="emailGroup" style="display:none;">
+                <span class="input-icon">✉</span>
+                <input id="authEmail" type="email" placeholder="Email (required for register)" autocomplete="email">
+            </div>
+            <button id="authLoginBtn" class="btn btn-primary">Sign In</button>
+            <button id="authToggleBtn" class="btn btn-ghost">Don't have an account? Register</button>
+        </div>
+    </div>
+</div>
 
 <!-- 左侧导航 -->
 
@@ -25,11 +152,13 @@ href="css/style.css">
 
     <div class="logo">
 
-        <h1>ChemAI</h1>
+        <h1>ChemVigil</h1>
 
         <p>Intelligent Literature Discovery Platform</p>
 
     </div>
+
+    <div id="userInfo" style="padding:8px 16px;font-size:13px;color:#64748b;margin-bottom:8px;"></div>
 
     <ul id="navMenu">
 
@@ -41,12 +170,12 @@ href="css/style.css">
             ⭐ Favorites
         </li>
 
-        <li data-page="history-page">
-            🕘 History
-        </li>
-
         <li data-page="subscription-page">
             📬 Subscription
+        </li>
+
+        <li data-page="topics-page">
+            🧪 Topics
         </li>
 
         <li data-page="email-page">
@@ -58,6 +187,10 @@ href="css/style.css">
         </li>
 
     </ul>
+
+    <div style="padding:16px;border-top:1px solid #e2e8f0;margin-top:auto;">
+        <button id="logoutBtn" class="btn" style="width:100%;padding:8px;font-size:13px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;cursor:pointer;">Sign Out</button>
+    </div>
 
 </aside>
 
@@ -75,7 +208,7 @@ href="css/style.css">
 
             <h1>
 
-                ChemAI 智能文献发现平台
+                ChemVigil 智能文献发现平台
 
             </h1>
 
@@ -87,9 +220,9 @@ href="css/style.css">
 
         </header>
 
-        <div class="search-panel">
+        <div class="search-panel" style="display:flex;align-items:center;gap:12px;">
 
-            <div class="search-input">
+            <div class="search-input" style="flex:1;">
 
                 <input
 
@@ -102,6 +235,20 @@ href="css/style.css">
                     搜索
 
                 </button>
+
+            </div>
+
+            <div class="time-filter">
+
+                <label for="timeRange">时间：</label>
+
+                <select id="timeRange">
+                    <option value="all">全部</option>
+                    <option value="1w">近一周</option>
+                    <option value="1m">近一月</option>
+                    <option value="3m">近三月</option>
+                    <option value="1y">近一年</option>
+                </select>
 
             </div>
 
@@ -121,19 +268,9 @@ href="css/style.css">
 
         <h2>⭐ Favorites</h2>
 
-        <p>这里将显示收藏的论文卡片。</p>
+        <div id="favorites-loading" style="color:#2563eb;margin:20px 0;font-size:18px;">Loading...</div>
 
-    </div>
-
-    <!-- ================= History ================= -->
-
-    <div
-    id="history-page"
-    class="page">
-
-        <h2>🕘 History</h2>
-
-        <p>这里将显示浏览历史。</p>
+        <div id="favorites-list"></div>
 
     </div>
 
@@ -145,7 +282,49 @@ href="css/style.css">
 
         <h2>📬 Subscription</h2>
 
-        <p>这里管理研究方向和邮件订阅。</p>
+        <div class="card">
+            <h3 style="margin-bottom:15px;color:#0f172a;">Followed Journals</h3>
+            <div id="followed-journals"></div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h3 style="margin-bottom:15px;color:#0f172a;">All Journals</h3>
+            <button id="refreshJournalsBtn" class="btn" style="margin-bottom:10px;">Refresh</button>
+            <input id="journalSearchInput" class="input" placeholder="Search journals..." style="width:100%;margin-bottom:15px;">
+            <div id="journal-list"></div>
+        </div>
+
+    </div>
+
+    <!-- ================= Topics ================= -->
+
+    <div
+    id="topics-page"
+    class="page">
+
+        <h2>🧪 Research Topics</h2>
+
+        <div class="card">
+            <h3 style="margin-bottom:15px;color:#0f172a;">Create Interest</h3>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <input id="interestNameInput" class="input" placeholder="Name (e.g. My CO₂RR Research)" style="flex:1;min-width:150px;">
+                    <select id="interestDomainSelect" class="input" style="flex:1;min-width:150px;">
+                        <option value="">Select domain...</option>
+                    </select>
+                </div>
+                <textarea id="interestDescInput" class="input" placeholder="Describe your research interest in detail (e.g. I study nickel-based MOFs for electrocatalytic CO2 reduction, focusing on selectivity control)" style="width:100%;min-height:80px;resize:vertical;"></textarea>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <input id="interestKeywordsInput" class="input" placeholder="Keywords (optional, comma separated)" style="flex:2;min-width:200px;">
+                    <button id="createInterestBtn" class="btn">Create</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h3 style="margin-bottom:15px;color:#0f172a;">Your Interests</h3>
+            <div id="interest-list"></div>
+        </div>
 
     </div>
 
@@ -157,7 +336,30 @@ href="css/style.css">
 
         <h2>📨 Email Push</h2>
 
-        <p>这里查看历史邮件和推送记录。</p>
+        <div style="display:flex;gap:12px;margin-bottom:25px;flex-wrap:wrap;">
+            <button id="fetchNowBtn" class="btn" style="background:#2456c3;">🔄 Trigger RSS Fetch</button>
+            <button id="pushNewBtn" class="btn" style="background:#16a34a;">📬 Push New Articles</button>
+            <button id="genReportBtn" class="btn" style="background:#f59e0b;">📊 Generate Weekly Report</button>
+            <button id="sendTestEmailBtn" class="btn" style="background:#64748b;">✉ Send Test Email</button>
+        </div>
+
+        <div id="email-status" class="card" style="margin-bottom:20px;text-align:center;padding:30px;">
+            <div style="font-size:48px;margin-bottom:10px;">📬</div>
+            <div style="font-size:18px;color:#0f172a;margin-bottom:6px;">Email Delivery Status</div>
+            <div id="email-status-detail" style="font-size:14px;color:#64748b;">Configure your email in Settings page.</div>
+            <div id="email-status-stats" style="margin-top:12px;display:flex;gap:20px;justify-content:center;flex-wrap:wrap;"></div>
+            <button id="retryEmailsBtn" class="btn" style="margin-top:16px;background:#f59e0b;display:none;">🔄 Retry Failed Deliveries</button>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+            <h3 style="margin-bottom:15px;color:#0f172a;">📋 Delivery History</h3>
+            <div id="email-delivery-list"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+            <h3 style="margin-bottom:15px;color:#0f172a;">Latest Report</h3>
+            <div id="email-report-preview" style="font-size:14px;color:#64748b;">No report generated yet.</div>
+        </div>
 
     </div>
 
@@ -169,7 +371,23 @@ href="css/style.css">
 
         <h2>⚙ Settings</h2>
 
-        <p>系统配置。</p>
+        <div class="card">
+            <h3 style="margin-bottom:15px;color:#0f172a;">Email Delivery</h3>
+            <div id="verifyBanner" class="show unverified" style="display:none;">
+                <span>❌ Email not verified</span>
+                <button id="resendVerifyBtn" class="resend-btn">Resend</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:15px;">
+                <label style="font-size:15px;color:#475569;">Enable email push</label>
+                <input id="emailEnabledCheck" type="checkbox" style="width:18px;height:18px;">
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <label style="font-size:15px;color:#475569;">Target email</label>
+                <input id="targetEmailInput" class="input" placeholder="your@email.com" style="flex:1;min-width:200px;">
+                <button id="saveSettingsBtn" class="btn">Save</button>
+            </div>
+            <div id="settingsStatus" style="margin-top:12px;font-size:14px;color:#16a34a;"></div>
+        </div>
 
     </div>
 
@@ -178,6 +396,8 @@ href="css/style.css">
 <script type="module" src="js/navigation.js"></script>
 
 <script type="module" src="js/app.js"></script>
+
+<script type="module" src="js/dashboard.js"></script>
 
 </body>
 

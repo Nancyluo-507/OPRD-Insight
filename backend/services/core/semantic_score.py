@@ -5,6 +5,8 @@ from services.core.semantic_match import (
     semantic_match
 )
 
+from services.core.embedding_match import embedding_score
+
 from services.models.paper import Paper
 
 
@@ -142,7 +144,6 @@ def calculate_score(
         elif paper.year >= CURRENT_YEAR - 5:
 
             score += 5
-
     # ======================================================
     # Semantic Bonus
     # ======================================================
@@ -153,11 +154,28 @@ def calculate_score(
 
     ) * 2
 
+    # ======================================================
+    # Embedding Similarity (sentence-transformers)
+    # ======================================================
+
+    score += embedding_score(
+
+        query,
+
+        paper.title,
+
+        paper.abstract,
+
+        use_transformer=True
+
+    )
+
     return round(
 
         score,
 
         2
+
     )
 # ==========================================================
 # Rank Papers

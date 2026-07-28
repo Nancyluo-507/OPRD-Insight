@@ -1,40 +1,19 @@
 from services.core.translator import translate_query
+from utils.logger import log
 
 
 def process_query(query: str) -> dict:
-    """
-    查询预处理
-
-    输入：
-        中文
-        英文
-        中英混合
-
-    输出：
-        {
-            original_query,
-            english_query,
-            search_query
-        }
-    """
-
     query = query.strip()
-
-    english_query = translate_query(
-        query
-    )
-
-    result = {
-
+    try:
+        english_query = translate_query(query)
+    except Exception as e:
+        log.warning(f"Translation failed, using original query: {e}")
+        english_query = query
+    return {
         "original_query": query,
-
         "english_query": english_query,
-
-        "search_query": english_query
-
+        "search_query": english_query,
     }
-
-    return result
 if __name__ == "__main__":
 
     examples = [

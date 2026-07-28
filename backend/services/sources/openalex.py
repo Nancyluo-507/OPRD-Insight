@@ -1,3 +1,5 @@
+import time
+import random
 import requests
 
 from typing import List
@@ -12,16 +14,7 @@ from services.parsers.paper_parser import (
     normalize_openalex_paper
 )
 
-
-# ==========================================================
-# Config
-# ==========================================================
-
-OPENALEX_URL = "https://api.openalex.org/works"
-
-DEFAULT_PER_PAGE = 50
-
-TIMEOUT = 30
+from config.settings import settings
 
 
 session = requests.Session()
@@ -30,9 +23,7 @@ session.headers.update(
 
     {
 
-        "User-Agent":
-
-        "OPRD-Insight/1.0"
+        "User-Agent": settings.OPENALEX_USER_AGENT
 
     }
 
@@ -49,61 +40,63 @@ def request_openalex(
 
     cursor: str = "*",
 
-    per_page: int = DEFAULT_PER_PAGE
+    per_page: int = None
 
 ):
 
-    response = session.get(
+    if per_page is None:
+        per_page = settings.OPENALEX_PER_PAGE
 
-        OPENALEX_URL,
+    max_retries = 3
+    last_error = None
+    for attempt in range(max_retries + 1):
+        try:
+            response = session.get(
 
-        params={
+                settings.OPENALEX_URL,
 
-            "search": search_query,
+                params={
 
-            "per-page": per_page,
+                    "search": search_query,
 
-            "cursor": cursor
+                    "per-page": per_page,
 
-        },
+                    "cursor": cursor
 
-        timeout=TIMEOUT
+                },
 
-    )
+                timeout=settings.OPENALEX_TIMEOUT
 
-    response.raise_for_status()
+            )
 
-    data = response.json()
+            if response.status_code == 200:
+                data = response.json()
+                next_cursor = data.get("meta", {}).get("next_cursor")
+                total_count = data.get("meta", {}).get("count", 0)
+                return data, next_cursor, total_count
 
-    next_cursor = (
+            last_error = f"HTTP {response.status_code}"
+            if response.status_code in (429, 502, 503, 504) and attempt < max_retries:
+                delay = 1.0 * (2 ** attempt) + random.uniform(0, 0.5)
+                print(f"  OpenAlex retry {attempt+1}/{max_retries} ({last_error}, delay={delay:.1f}s)")
+                time.sleep(delay)
+                continue
 
-        data
+            print(f"OpenAlex error: {last_error}")
+            return {"meta": {"next_cursor": None, "count": 0}, "results": []}, None, 0
 
-        .get("meta", {})
-
-        .get("next_cursor")
-
-    )
-
-    total_count = (
-
-        data
-
-        .get("meta", {})
-
-        .get("count", 0)
-
-    )
-
-    return (
-
-        data,
-
-        next_cursor,
-
-        total_count
-
-    )
+        except requests.exceptions.Timeout:
+            if attempt < max_retries:
+                delay = 1.0 * (2 ** attempt) + random.uniform(0, 0.5)
+                print(f"  OpenAlex timeout, retry {attempt+1}/{max_retries} (delay={delay:.1f}s)")
+                time.sleep(delay)
+                last_error = "Timeout"
+            else:
+                print(f"  OpenAlex timeout after {max_retries} retries")
+                return {"meta": {"next_cursor": None, "count": 0}, "results": []}, None, 0
+        except Exception as e:
+            print(f"OpenAlex request failed: {e}")
+            return {"meta": {"next_cursor": None, "count": 0}, "results": []}, None, 0
 # ==========================================================
 # Search
 # ==========================================================
@@ -114,9 +107,12 @@ def search_openalex(
 
     cursor: str = "*",
 
-    per_page: int = DEFAULT_PER_PAGE
+    per_page: int = None
 
 ):
+
+    if per_page is None:
+        per_page = settings.OPENALEX_PER_PAGE
 
     query_info = process_query(
 
