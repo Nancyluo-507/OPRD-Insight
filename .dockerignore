@@ -1,0 +1,15 @@
+.git/
+.gitignore
+*.md
+*.zip
+*.bat
+*.ps1
+*.vbs
+Desktop/
+docs/
+mail/
+__pycache__/
+*.pyc
+.env
+.env.example
+.pytest_cache/

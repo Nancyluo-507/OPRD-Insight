@@ -1,7 +1,14 @@
+python-dotenv
 fastapi
-uvicorn
+uvicorn[standard]
 sqlalchemy
 pydantic
 requests
+numpy
+apscheduler
 beautifulsoup4
 lxml
+feedparser
+deep-translator
+cryptography
+sentence-transformers
