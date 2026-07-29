@@ -155,7 +155,7 @@ class TransformerEmbedding:
             self._model = SentenceTransformer("all-MiniLM-L6-v2")
             self._available = True
             print("[Embedding] sentence-transformers loaded (384-dim)")
-        except ImportError:
+        except Exception:
             self._available = False
 
     def encode(self, text: str) -> np.ndarray:

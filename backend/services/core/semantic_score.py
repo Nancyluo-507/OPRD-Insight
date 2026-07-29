@@ -162,17 +162,15 @@ def calculate_score(
     # Embedding Similarity (sentence-transformers)
     # ======================================================
 
-    score += embedding_score(
-
-        query,
-
-        paper.title,
-
-        paper.abstract,
-
-        use_transformer=True
-
-    )
+    try:
+        score += embedding_score(
+            query,
+            paper.title,
+            paper.abstract,
+            use_transformer=True,
+        )
+    except Exception:
+        pass
 
     return round(
 
