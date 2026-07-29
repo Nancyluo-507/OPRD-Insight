@@ -2,10 +2,11 @@
 RSS 采集器 - 从数据库读取期刊列表，统一采集所有活跃期刊的RSS源
 
 支持：
-- RSC / Nature / Wiley / Elsevier / Springer / Science（HTTP直连）
-- ACS（HTTP 直连尝试，失败则跳过）
+- ACS（需要browser-act）
+- RSC / Nature / Wiley / Elsevier / Springer（HTTP直连）
+- 数据库驱动的采集列表
 """
-import re
+import re, time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List
 from bs4 import BeautifulSoup
@@ -16,6 +17,10 @@ from database.database import SessionLocal
 from database.models import Journal
 from services.models.rss_paper import RSSPaper
 from services.discovery.rss_normalizer import clean_html, clean_spaces, extract_doi, remove_doi, remove_metadata
+
+
+BROWSER_ACT = r"C:\Users\luoyihan\.local\bin\browser-act.exe"
+SESSION = "acs-batch"
 
 
 def normalize_entry(entry, source: str, journal_title: str = "", publisher: str = "") -> RSSPaper:
@@ -90,6 +95,74 @@ def normalize_entry(entry, source: str, journal_title: str = "", publisher: str 
     )
 
 
+_BROWSER_OPENED = False
+_BROWSER_ID = "108290830888227166"
+
+def _ensure_browser():
+    global _BROWSER_OPENED
+    if _BROWSER_OPENED:
+        return True
+    import subprocess
+    try:
+        r = subprocess.run([BROWSER_ACT, "--session", SESSION, "browser", "open",
+                           _BROWSER_ID, "about:blank"], capture_output=True, timeout=30)
+        if r.returncode == 0:
+            _BROWSER_OPENED = True
+            return True
+        err = r.stderr.decode("utf-8", errors="replace")[:200] if r.stderr else f"rc={r.returncode}"
+        print(f"  browser-act open failed: {err}")
+        return False
+    except Exception as e:
+        print(f"  browser-act open error: {e}")
+        return False
+
+
+def fetch_cloudflare_rss(url: str, journal: str, publisher: str) -> List[RSSPaper]:
+    """通过 browser-act 绕过 Cloudflare 采集 RSS"""
+    if not _ensure_browser():
+        return []
+    import subprocess
+    papers = []
+    try:
+        r = subprocess.run([BROWSER_ACT, "--session", SESSION, "navigate", url],
+                           capture_output=True, timeout=15)
+        if r.returncode != 0:
+            return papers
+        time.sleep(2)
+        r2 = subprocess.run([BROWSER_ACT, "--session", SESSION, "get", "markdown"],
+                            capture_output=True, timeout=10)
+        if r2.returncode != 0:
+            return papers
+        content = r2.stdout.decode("utf-8", errors="replace")
+        idx = content.find("The document tree is shown below.")
+        if idx > 0:
+            xml_text = content[idx + len("The document tree is shown below."):].strip()
+        else:
+            xml_text = content
+        soup = BeautifulSoup(xml_text, "xml")
+        items = soup.find_all("item")
+        for item in items:
+            paper = normalize_entry(
+                {"title": item.find("title"), "link": item.find("link"),
+                 "pubDate": item.find("pubDate"), "summary": item.find("description") or item.find("summary"),
+                 "abstract": item.find("abstract")},
+                source=publisher or "cloudflare", journal_title=journal, publisher=publisher
+            )
+            if paper:
+                for tag in item.find_all():
+                    if "doi" in (tag.name or "").lower():
+                        paper.doi = clean_html(str(tag))
+                        break
+                if not paper.doi:
+                    m = re.search(r"10\.\d{4,9}/\S+", paper.url)
+                    if m:
+                        paper.doi = m.group(0).rstrip(".")
+                papers.append(paper)
+    except Exception as e:
+        print(f"  browser-act error ({journal}): {e}")
+    return papers
+
+
 def fetch_rss_http(url: str, journal: str, publisher: str) -> List[RSSPaper]:
     """普通 HTTP RSS 抓取"""
     papers = []
@@ -107,15 +180,14 @@ def fetch_rss_http(url: str, journal: str, publisher: str) -> List[RSSPaper]:
     return papers
 
 
+_CLOUDFLARE_PUBLISHERS = {"ACS", "Wiley"}
+
 def _fetch_one(journal, limit):
     try:
+        if journal.publisher in _CLOUDFLARE_PUBLISHERS:
+            # Cloudflare 期刊内容已从 home_papers.xlsx 导入，跳过
+            return []
         return fetch_rss_http(journal.rss_url, journal.title, journal.publisher)
-    except requests.RequestException as e:
-        if "403" in str(e) or "403" in str(type(e)):
-            print(f"  [{journal.publisher}] {journal.title} blocked (403)")
-        else:
-            print(f"  [{journal.publisher}] {journal.title} error: {e}")
-        return []
     except Exception as e:
         print(f"  [{journal.publisher}] {journal.title} error: {e}")
         return []
