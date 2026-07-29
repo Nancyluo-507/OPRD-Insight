@@ -58,6 +58,9 @@ class Settings:
     # PubMed
     PUBMED_EMAIL: str = get("PUBMED_EMAIL", "nancy@boehringer-ingelheim.com")
 
+    # Cron
+    CRON_SECRET: str = get("CRON_SECRET", "")
+
     # Source Priority (higher = better)
     SOURCE_PRIORITY: dict = {
         "OpenAlex": 100,
