@@ -13,7 +13,7 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')" 2>/dev/null || echo "Model download skipped (will load at runtime)"
 
 COPY backend/ backend/
 COPY frontend/ frontend/
@@ -21,6 +21,7 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 ENV DATA_DIR=/data
+ENV PYTHONPATH=/app/backend
 ENV PORT=8080
 
 EXPOSE 8080

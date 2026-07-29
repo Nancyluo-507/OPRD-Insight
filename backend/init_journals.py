@@ -46,13 +46,13 @@ JOURNALS = [
     ("Nature Cell Biology", "NatCellBio", "Nature", "https://www.nature.com/ncb.rss"),
     ("Nature Chemical Biology", "NatChemBio", "Nature", "https://www.nature.com/nchembio.rss"),
 
-    # === Science (core + extra) ===
-    ("Science", "Science", "Science", "https://science.org/action/showFeed?type=axatoc&feed=rss&jc=science"),
-    ("Science Advances", "SciAdv", "Science", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=sciadv"),
-    ("Science Robotics", "SciRobot", "Science", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=scirobotics"),
-    ("Science Immunology", "SciImmunol", "Science", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=sciimmunol"),
-    ("Science Translational Medicine", "SciTranslMed", "Science", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=stm"),
-    ("Science Signaling", "SciSignal", "Science", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=signaling"),
+    # === AAAS / Science (6 journals) ===
+    ("Science", "Science", "AAAS", "https://science.org/action/showFeed?type=axatoc&feed=rss&jc=science"),
+    ("Science Advances", "SciAdv", "AAAS", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=sciadv"),
+    ("Science Robotics", "SciRobot", "AAAS", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=scirobotics"),
+    ("Science Immunology", "SciImmunol", "AAAS", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=sciimmunol"),
+    ("Science Translational Medicine", "SciTranslMed", "AAAS", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=stm"),
+    ("Science Signaling", "SciSignal", "AAAS", "https://science.org/action/showFeed?type=etoc&feed=rss&jc=signaling"),
 
     # === Wiley (9 journals) ===
     ("Angewandte Chemie International Edition", "AngewChem", "Wiley", "https://onlinelibrary.wiley.com/feed/15213773/most-recent"),
@@ -80,6 +80,13 @@ JOURNALS = [
     # === Springer ===
     ("Applied Microbiology and Biotechnology", "ApplMicrobBiotech", "Springer",
      "https://link.springer.com/search.rss?query=&search-within=Journal&facet-journal-id=253"),
+
+    # === arXiv (via export.arxiv.org API, Atom XML) ===
+    ("arXiv cs.CL - Computation and Language", "cs.CL", "arXiv", "https://export.arxiv.org/api/query?search_query=cat:cs.CL&sortBy=submittedDate&sortOrder=descending&max_results=50"),
+    ("arXiv cs.CV - Computer Vision", "cs.CV", "arXiv", "https://export.arxiv.org/api/query?search_query=cat:cs.CV&sortBy=submittedDate&sortOrder=descending&max_results=50"),
+    ("arXiv cs.LG - Machine Learning", "cs.LG", "arXiv", "https://export.arxiv.org/api/query?search_query=cat:cs.LG&sortBy=submittedDate&sortOrder=descending&max_results=50"),
+    ("arXiv cs.NE - Neural and Evolutionary Computing", "cs.NE", "arXiv", "https://export.arxiv.org/api/query?search_query=cat:cs.NE&sortBy=submittedDate&sortOrder=descending&max_results=50"),
+    ("arXiv stat.ML - Machine Learning", "stat.ML", "arXiv", "https://export.arxiv.org/api/query?search_query=cat:stat.ML&sortBy=submittedDate&sortOrder=descending&max_results=50"),
 ]
 
 

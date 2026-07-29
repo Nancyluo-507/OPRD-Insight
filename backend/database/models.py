@@ -45,8 +45,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     email_enabled = Column(Boolean, default=False)
     target_email = Column(String)
-    email_verified = Column(Boolean, default=False)
-    email_verify_token = Column(String, default="")
+    email_verified = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now)
 
 

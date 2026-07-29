@@ -24,18 +24,12 @@ class Settings:
     DATA_DIR: str = get("DATA_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "database"))
     DATABASE_URL: str = get("DATABASE_URL", f"sqlite:///{os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'database', 'papers.db')}")
 
-    # Email (SendGrid)
-    SENDGRID_API_KEY: str = get("SENDGRID_API_KEY", "")
-
     # Email (SMTP)
     SMTP_HOST: str = get("SMTP_HOST", "")
     SMTP_PORT: int = int(get("SMTP_PORT", "465"))
     SMTP_USER: str = get("SMTP_USER", "")
-    SMTP_PASS: str = get("SMTP_PASS", "")
+    SMTP_PASSWORD: str = get("SMTP_PASSWORD", "")
     SMTP_FROM: str = get("SMTP_FROM", get("EMAIL_FROM", "ChemVigil <noreply@chemvigil.app>"))
-
-    # Email (Resend)
-    RESEND_API_KEY: str = get("RESEND_API_KEY", "")
 
     # Translation (Baidu)
     BAIDU_APP_ID: str = get("BAIDU_APP_ID", "")

@@ -137,13 +137,17 @@ def calculate_score(
 
     if paper.year:
 
-        if paper.year >= CURRENT_YEAR - 3:
+        if paper.year >= CURRENT_YEAR - 1:
 
-            score += 10
+            score += 30
+
+        elif paper.year >= CURRENT_YEAR - 3:
+
+            score += 20
 
         elif paper.year >= CURRENT_YEAR - 5:
 
-            score += 5
+            score += 10
     # ======================================================
     # Semantic Bonus
     # ======================================================

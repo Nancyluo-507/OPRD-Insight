@@ -32,8 +32,7 @@ import { getUserId, isLoggedIn } from "./auth.js";
 const keywordInput =
     document.getElementById("keyword");
 
-const timeRangeSelect =
-    document.getElementById("timeRange");
+
 
 const searchBtn =
     document.getElementById("searchBtn");
@@ -165,14 +164,12 @@ async function startSearch(){
     try{
 
 
-        const tr = timeRangeSelect ? timeRangeSelect.value : "all";
-
         const data =
 
             await searchPaper(
 
                 keyword,
-                tr,
+                "all",
                 signal
 
             );

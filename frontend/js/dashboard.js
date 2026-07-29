@@ -555,21 +555,8 @@ async function loadSettings(userId) {
         const user = await getUser(userId);
         const enabledCheck = document.getElementById("emailEnabledCheck");
         const emailInput = document.getElementById("targetEmailInput");
-        const verifyBanner = document.getElementById("verifyBanner");
         if (enabledCheck) enabledCheck.checked = user.email_enabled || false;
         if (emailInput) emailInput.value = user.target_email || "";
-        // Show verification banner
-        if (verifyBanner && user.target_email) {
-            if (user.email_verified) {
-                verifyBanner.className = "show verified";
-                verifyBanner.innerHTML = `<span>✅ Email verified</span>`;
-            } else {
-                verifyBanner.className = "show unverified";
-                verifyBanner.innerHTML = `<span>❌ Email not verified — check your inbox</span>
-                    <button id="resendVerifyBtn" class="resend-btn">Resend</button>`;
-            }
-            verifyBanner.style.display = "flex";
-        }
     } catch (e) {
         console.error("Failed to load settings", e);
     }
@@ -577,31 +564,6 @@ async function loadSettings(userId) {
 
 function initSettings(userId) {
     loadSettings(userId);
-
-    // Resend verification email
-    document.addEventListener("click", async (e) => {
-        if (e.target.id === "resendVerifyBtn") {
-            e.target.disabled = true;
-            e.target.textContent = "Sending...";
-            try {
-                const resp = await fetch(`/api/v1/auth/resend-verify`, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${getToken()}` },
-                });
-                const data = await resp.json();
-                if (resp.ok) {
-                    alert("✅ Verification email resent! Check your inbox.");
-                } else {
-                    alert("❌ " + (data.error || "Failed to resend"));
-                }
-            } catch (e) {
-                alert("❌ Error: " + e.message);
-            }
-            e.target.disabled = false;
-            e.target.textContent = "Resend";
-        }
-    });
-
     const saveBtn = document.getElementById("saveSettingsBtn");
     const statusEl = document.getElementById("settingsStatus");
     if (saveBtn) {
@@ -730,29 +692,23 @@ function initSettings(userId) {
     function showUserInfo() {
         const name = localStorage.getItem("chemvigil_user_name") || "";
         const uid = localStorage.getItem("chemvigil_user_id") || "";
-        const verified = localStorage.getItem("chemvigil_email_verified") === "true";
-        const email = localStorage.getItem("chemvigil_target_email") || "";
         if (userInfo) {
-            let txt = `👤 ${name} (ID: ${uid})`;
-            if (email && !verified) txt += ` · <span style="color:#dc2626;">❌ Email not verified</span>`;
-            else if (email && verified) txt += ` · ✅`;
-            userInfo.innerHTML = txt;
+            userInfo.innerHTML = `👤 ${name} (ID: ${uid})`;
         }
         if (overlay) overlay.classList.add("hidden");
     }
 
     if (isLoggedIn()) {
-        // Check email verified status from API
         const token = getToken();
         if (token) {
             try {
                 const resp = await fetch(`/api/v1/auth/me`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-                const user = await resp.json();
-                if (user.user) {
-                    localStorage.setItem("chemvigil_email_verified", user.user.email_verified ? "true" : "false");
-                    localStorage.setItem("chemvigil_target_email", user.user.target_email || "");
+                if (!resp.ok) throw new Error();
+                const data = await resp.json();
+                if (data.user) {
+                    localStorage.setItem("chemvigil_target_email", data.user.target_email || "");
                 }
             } catch(e) {}
         }
@@ -799,11 +755,10 @@ function initSettings(userId) {
                         return;
                     }
                     await register(name, pass, email);
-                    setSuccess("✅ Registration successful! Check your email for verification.");
+                    setSuccess("✅ Registration successful!");
                     setTimeout(() => { showUserInfo(); location.reload(); }, 1500);
                 } else {
                     const user = await login(name, pass);
-                    localStorage.setItem("chemvigil_email_verified", user.email_verified ? "true" : "false");
                     localStorage.setItem("chemvigil_target_email", user.target_email || "");
                     showUserInfo();
                     location.reload();
@@ -819,7 +774,6 @@ function initSettings(userId) {
     if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
             authLogout();
-            localStorage.removeItem("chemvigil_email_verified");
             localStorage.removeItem("chemvigil_target_email");
             location.reload();
         });

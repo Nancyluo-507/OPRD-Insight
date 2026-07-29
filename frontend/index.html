@@ -97,15 +97,6 @@ href="css/style.css">
 }
 .login-card .tab.active { background:white;color:#0f172a;box-shadow:0 2px 8px rgba(0,0,0,.06); }
 .login-card .tab:hover:not(.active) { color:#0f172a; }
-#verifyBanner {
-    display:none;padding:10px 16px;margin:0 0 16px;border-radius:12px;
-    font-size:13px;align-items:center;gap:8px;justify-content:space-between;
-}
-#verifyBanner.show { display:flex; }
-#verifyBanner.unverified { background:#fef2f2;color:#dc2626;border:1px solid #fecaca; }
-#verifyBanner.verified { background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0; }
-#verifyBanner .resend-btn { color:#2456c3;cursor:pointer;font-weight:600;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid #dbeafe;background:white;transition:.2s; }
-#verifyBanner .resend-btn:hover { background:#eff6ff; }
 </style>
 
 </head>
@@ -220,35 +211,13 @@ href="css/style.css">
 
         </header>
 
-        <div class="search-panel" style="display:flex;align-items:center;gap:12px;">
+        <div class="search-panel">
 
-            <div class="search-input" style="flex:1;">
+            <div class="search-input">
 
-                <input
+                <input id="keyword" placeholder="请输入关键词，例如 electrocatalyst membrane">
 
-                id="keyword"
-
-                placeholder="请输入关键词，例如 electrocatalyst membrane">
-
-                <button id="searchBtn">
-
-                    搜索
-
-                </button>
-
-            </div>
-
-            <div class="time-filter">
-
-                <label for="timeRange">时间：</label>
-
-                <select id="timeRange">
-                    <option value="all">全部</option>
-                    <option value="1w">近一周</option>
-                    <option value="1m">近一月</option>
-                    <option value="3m">近三月</option>
-                    <option value="1y">近一年</option>
-                </select>
+                <button id="searchBtn">搜索</button>
 
             </div>
 
@@ -373,10 +342,6 @@ href="css/style.css">
 
         <div class="card">
             <h3 style="margin-bottom:15px;color:#0f172a;">Email Delivery</h3>
-            <div id="verifyBanner" class="show unverified" style="display:none;">
-                <span>❌ Email not verified</span>
-                <button id="resendVerifyBtn" class="resend-btn">Resend</button>
-            </div>
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:15px;">
                 <label style="font-size:15px;color:#475569;">Enable email push</label>
                 <input id="emailEnabledCheck" type="checkbox" style="width:18px;height:18px;">

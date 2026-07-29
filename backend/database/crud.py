@@ -23,10 +23,10 @@ def get_user_by_name(name: str) -> User | None:
     finally:
         db.close()
 
-def create_user(name: str, password_hash: str, email: str, verify_token: str) -> User:
+def create_user(name: str, password_hash: str, email: str) -> User:
     db = SessionLocal()
     try:
-        user = User(name=name, password_hash=password_hash, target_email=email, email_verify_token=verify_token)
+        user = User(name=name, password_hash=password_hash, target_email=email)
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -44,22 +44,6 @@ def update_user_settings(user_id: int, email_enabled: bool, target_email: str):
             db.commit()
     finally:
         db.close()
-
-def verify_user_email(token: str) -> User | None:
-    db = SessionLocal()
-    try:
-        user = db.query(User).filter(
-            User.email_verify_token == token,
-            User.email_verified == False,
-        ).first()
-        if user:
-            user.email_verified = True
-            user.email_verify_token = ""
-            db.commit()
-        return user
-    finally:
-        db.close()
-
 
 # ========== Journals ==========
 

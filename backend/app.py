@@ -42,6 +42,7 @@ from routers.search import router as search_router
 from routers.user import router as user_router
 from routers.admin import router as admin_router
 from routers.cron import router as cron_router
+from routers.papers import router as papers_router
 
 app.include_router(home_router)
 app.include_router(auth_router)
@@ -49,6 +50,7 @@ app.include_router(search_router)
 app.include_router(user_router)
 app.include_router(admin_router)
 app.include_router(cron_router)
+app.include_router(papers_router)
 
 # --- Startup / Shutdown ---
 
@@ -56,10 +58,15 @@ app.include_router(cron_router)
 def startup():
     init_db()
 
-    # Preload embedding model so first search isn't slow
-    from services.core.embedding_match import _get_transformer
-    _get_transformer()
-    log.info("Embedding model loaded")
+    # Preload embedding model in background, don't block startup
+    if not os.environ.get("HF_ENDPOINT"):
+        os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+    import threading
+    def _load_model():
+        from services.core.embedding_match import _get_transformer
+        _get_transformer()
+        log.info("Embedding model loaded")
+    threading.Thread(target=_load_model, daemon=True).start()
 
     from services.core.job_worker import worker as job_worker
     job_worker.start()

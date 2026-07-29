@@ -1,11 +1,12 @@
 """
 RSS 采集器 - 从数据库读取期刊列表，统一采集所有活跃期刊的RSS源
 
-使用 cloudscraper 绕过 Cloudflare，支持：
-- ACS / Science / Wiley（cloudscraper 自动处理）
-- RSC / Nature / Elsevier / Springer
+流程：
+- ACS → 有 browser-act 用 browser-act，没有则跳过（论文走搜索API）
+- 其他出版社 → cloudscraper（自动处理 Cloudflare / 直连）
 """
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List
 from bs4 import BeautifulSoup
@@ -18,6 +19,11 @@ from services.models.rss_paper import RSSPaper
 from services.discovery.rss_normalizer import clean_html, clean_spaces, extract_doi, remove_doi, remove_metadata
 
 _scraper = cloudscraper.create_scraper()
+
+BROWSER_ACT = r"C:\Users\luoyihan\.local\bin\browser-act.exe"
+_SESSION = "acs-batch"
+_BROWSER_OPENED = False
+_BROWSER_ID = "108290830888227166"
 
 
 def normalize_entry(entry, source: str, journal_title: str = "", publisher: str = "") -> RSSPaper:
@@ -67,6 +73,10 @@ def normalize_entry(entry, source: str, journal_title: str = "", publisher: str 
             authors_list = [a.strip() for a in dc.split(";") if a.strip()]
         elif isinstance(dc, list):
             authors_list = [str(a) for a in dc]
+    if not authors_list:
+        atom_authors = entry.get("authors", [])
+        if atom_authors:
+            authors_list = [a.get("name", str(a)) for a in atom_authors if hasattr(a, "get")]
 
     keywords = []
     tags = entry.get("tags", [])
@@ -92,7 +102,68 @@ def normalize_entry(entry, source: str, journal_title: str = "", publisher: str 
     )
 
 
-def fetch_rss(url: str, journal: str, publisher: str) -> List[RSSPaper]:
+# ========== browser-act (ACS Cloudflare 绕过，仅 Windows) ==========
+
+def _ensure_browser():
+    global _BROWSER_OPENED
+    if _BROWSER_OPENED:
+        return True
+    import subprocess
+    try:
+        r = subprocess.run([BROWSER_ACT, "--session", _SESSION, "browser", "open",
+                           _BROWSER_ID, "about:blank"], capture_output=True, timeout=30)
+        if r.returncode == 0:
+            _BROWSER_OPENED = True
+            return True
+        return False
+    except Exception:
+        return False
+
+
+def _fetch_acs_browser(url: str, journal: str, publisher: str) -> List[RSSPaper]:
+    if not _ensure_browser():
+        return []
+    import subprocess
+    papers = []
+    try:
+        r = subprocess.run([BROWSER_ACT, "--session", _SESSION, "navigate", url],
+                           capture_output=True, timeout=15)
+        if r.returncode != 0:
+            return papers
+        time.sleep(2)
+        r2 = subprocess.run([BROWSER_ACT, "--session", _SESSION, "get", "markdown"],
+                            capture_output=True, timeout=10)
+        if r2.returncode != 0:
+            return papers
+        content = r2.stdout.decode("utf-8", errors="replace")
+        idx = content.find("The document tree is shown below.")
+        xml_text = content[idx + len("The document tree is shown below."):].strip() if idx > 0 else content
+        soup = BeautifulSoup(xml_text, "xml")
+        for item in soup.find_all("item"):
+            paper = normalize_entry(
+                {"title": item.find("title"), "link": item.find("link"),
+                 "pubDate": item.find("pubDate"), "summary": item.find("description") or item.find("summary"),
+                 "abstract": item.find("abstract")},
+                source="ACS", journal_title=journal, publisher=publisher
+            )
+            if paper:
+                for tag in item.find_all():
+                    if "doi" in (tag.name or "").lower():
+                        paper.doi = clean_html(str(tag))
+                        break
+                if not paper.doi:
+                    m = re.search(r"10\.\d{4,9}/\S+", paper.url)
+                    if m:
+                        paper.doi = m.group(0).rstrip(".")
+                papers.append(paper)
+    except Exception:
+        pass
+    return papers
+
+
+# ========== cloudscraper (非 ACS 出版社) ==========
+
+def _fetch_scraper(url: str, journal: str, publisher: str) -> List[RSSPaper]:
     papers = []
     try:
         r = _scraper.get(url, timeout=30)
@@ -108,8 +179,12 @@ def fetch_rss(url: str, journal: str, publisher: str) -> List[RSSPaper]:
     return papers
 
 
+# ========== 分发 ==========
+
 def _fetch_one(journal, limit):
-    return fetch_rss(journal.rss_url, journal.title, journal.publisher)
+    if journal.publisher == "ACS":
+        return _fetch_acs_browser(journal.rss_url, journal.title, journal.publisher)
+    return _fetch_scraper(journal.rss_url, journal.title, journal.publisher)
 
 
 def collect_all_journals(limit: int = 20, timeout: int = 120) -> List[RSSPaper]:
@@ -120,6 +195,7 @@ def collect_all_journals(limit: int = 20, timeout: int = 120) -> List[RSSPaper]:
         db.close()
 
     journals = [j for j in journals if j.rss_url]
+    journals.sort(key=lambda j: j.publisher == "ACS")
     all_papers = []
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures = {pool.submit(_fetch_one, j, limit): j for j in journals}
@@ -129,16 +205,10 @@ def collect_all_journals(limit: int = 20, timeout: int = 120) -> List[RSSPaper]:
     return all_papers
 
 
-# 向后兼容
 def collect_all(limit: int = 20) -> List[RSSPaper]:
     return collect_all_journals(limit)
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("Testing RSS Collector...")
-    print("=" * 60)
     papers = collect_all_journals(limit=5)
-    print(f"\nCollected {len(papers)} papers")
-    for p in papers[:10]:
-        print(f"  - [{p.source}] {p.title[:60]}")
+    print(f"Collected {len(papers)} papers")

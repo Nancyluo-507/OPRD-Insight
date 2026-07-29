@@ -22,8 +22,7 @@ def init_db():
         })
         _add_columns(conn, inspector, "users", {
             "password_hash": "VARCHAR(255)",
-            "email_verified": "BOOLEAN DEFAULT FALSE",
-            "email_verify_token": "VARCHAR(255)",
+            "email_verified": "BOOLEAN DEFAULT TRUE",
         })
         _add_columns(conn, inspector, "email_deliveries", {
             "sent_at": "TIMESTAMP",
@@ -73,8 +72,9 @@ def _seed_journals():
             return
         from init_journals import JOURNALS
         for title, short, publisher, rss_url in JOURNALS:
+            is_active = publisher not in ("ACS",)
             db.add(Journal(title=title, short_name=short, publisher=publisher,
-                           rss_url=rss_url, rss_type=publisher, is_active=True))
+                           rss_url=rss_url, rss_type=publisher, is_active=is_active))
         db.commit()
         print(f"[DB] Seeded {len(JOURNALS)} journals")
     finally:

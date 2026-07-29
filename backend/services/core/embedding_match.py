@@ -145,6 +145,8 @@ class TransformerEmbedding:
     def __init__(self):
         self._model = None
         self._available = False
+        import os
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
         self._try_load()
 
     def _try_load(self):
