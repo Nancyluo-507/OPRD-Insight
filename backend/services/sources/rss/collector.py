@@ -18,7 +18,11 @@ from database.models import Journal
 from services.models.rss_paper import RSSPaper
 from services.discovery.rss_normalizer import clean_html, clean_spaces, extract_doi, remove_doi, remove_metadata
 
-_scraper = cloudscraper.create_scraper()
+
+def _get_scraper():
+    if not hasattr(_get_scraper, "_instance"):
+        _get_scraper._instance = cloudscraper.create_scraper()
+    return _get_scraper._instance
 
 BROWSER_ACT = r"C:\Users\luoyihan\.local\bin\browser-act.exe"
 _SESSION = "acs-batch"
@@ -166,7 +170,7 @@ def _fetch_acs_browser(url: str, journal: str, publisher: str) -> List[RSSPaper]
 def _fetch_scraper(url: str, journal: str, publisher: str) -> List[RSSPaper]:
     papers = []
     try:
-        r = _scraper.get(url, timeout=30)
+        r = _get_scraper().get(url, timeout=30)
         if r.status_code != 200:
             return papers
         feed = feedparser.parse(r.text)
