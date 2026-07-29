@@ -1,6 +1,7 @@
 import os
 import time
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -34,6 +35,10 @@ async def request_logging(request, call_next):
 
 # --- Exception handlers ---
 register_exception_handlers(app)
+
+@app.get("/")
+def root():
+    return RedirectResponse(url="/app")
 
 # --- Routers ---
 from routers.home import router as home_router
