@@ -62,6 +62,8 @@ def init_db():
     finally:
         conn.close()
 
+    _seed_journals()
+
 
 def _add_indexes(conn, indexes):
     """Create indexes if they don't exist (SQLite-safe)."""
@@ -69,6 +71,22 @@ def _add_indexes(conn, indexes):
         name = f"idx_{table}_{column}"
         conn.execute(text(f"CREATE INDEX IF NOT EXISTS {name} ON {table}({column})"))
         print(f"[DB Migration] Index {name}")
+
+
+def _seed_journals():
+    from database.models import Journal
+    db = SessionLocal()
+    try:
+        if db.query(Journal).count() > 0:
+            return
+        from init_journals import JOURNALS
+        for title, short, publisher, rss_url in JOURNALS:
+            db.add(Journal(title=title, short_name=short, publisher=publisher,
+                           rss_url=rss_url, rss_type=publisher, is_active=True))
+        db.commit()
+        print(f"[DB] Seeded {len(JOURNALS)} journals")
+    finally:
+        db.close()
 
 
 def _add_columns(conn, inspector, table, columns):
