@@ -20,7 +20,6 @@ COPY frontend/ frontend/
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-ENV DATA_DIR=/data
 ENV PYTHONPATH=/app/backend
 ENV PORT=8080
 
