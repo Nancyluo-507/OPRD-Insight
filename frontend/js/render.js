@@ -226,15 +226,15 @@ if(readMore){
 
     const abstractText = card.querySelector(".abstract-text");
 
-    const fullHTML = abstract;
+    const fullHTML = abstractText.innerHTML;
 
     const shortHTML =
 
-        abstract.length > 350
+        fullHTML.length > 350
 
-        ? abstract.substring(0,350) + "..."
+        ? fullHTML.substring(0,350) + "..."
 
-        : abstract;
+        : fullHTML;
 
     let expanded = false;
 
