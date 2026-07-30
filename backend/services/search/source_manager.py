@@ -17,7 +17,7 @@ from services.core.highlight import highlight_paper
 from services.core.chemistry_filter import is_chemistry_related
 
 
-LOCAL_SOURCE_NAMES = {"local_db"}  # 仅作为离线回退
+LOCAL_SOURCE_NAMES = set()  # 本地库参与搜索，不再仅做离线回退
 
 
 # ==========================================================

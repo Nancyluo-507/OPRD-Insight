@@ -13,3 +13,4 @@ deep-translator
 cryptography
 psycopg2-binary
 cloudscraper
+sentence-transformers

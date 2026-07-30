@@ -13,7 +13,7 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Model downloaded at first runtime use (lazy load in embedding_match.py)
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')" 2>/dev/null || echo "Model download skipped"
 
 COPY backend/ backend/
 COPY frontend/ frontend/
