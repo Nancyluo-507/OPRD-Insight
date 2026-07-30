@@ -13,7 +13,7 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')" 2>/dev/null || echo "Model download skipped"
+# sentence-transformers removed due to 2GB memory limit on Zeabur. Model loads at runtime if available.
 
 COPY backend/ backend/
 COPY frontend/ frontend/
