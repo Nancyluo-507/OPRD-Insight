@@ -698,6 +698,14 @@ function initSettings(userId) {
         if (overlay) overlay.classList.add("hidden");
     }
 
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            authLogout();
+            localStorage.removeItem("chemvigil_target_email");
+            location.reload();
+        });
+    }
+
     if (isLoggedIn()) {
         const token = getToken();
         if (token) {
@@ -771,12 +779,5 @@ function initSettings(userId) {
         });
     }
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            authLogout();
-            localStorage.removeItem("chemvigil_target_email");
-            location.reload();
-        });
-    }
 })();
 
