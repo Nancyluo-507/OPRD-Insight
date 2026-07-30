@@ -173,6 +173,22 @@ def _fetch_scraper(url: str, journal: str, publisher: str) -> List[RSSPaper]:
         r = _get_scraper().get(url, timeout=30)
         if r.status_code != 200:
             print(f"  RSS {journal}: HTTP {r.status_code}")
+            # Retry with requests for 403 (Cloudflare) cases
+            if r.status_code == 403:
+                try:
+                    import requests as req
+                    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+                    r2 = req.get(url, timeout=30, headers=headers)
+                    if r2.status_code == 200:
+                        feed = feedparser.parse(r2.text)
+                        for entry in feed.entries:
+                            paper = normalize_entry(entry, source=publisher, journal_title=journal, publisher=publisher)
+                            if paper:
+                                papers.append(paper)
+                        print(f"  RSS {journal}: {len(papers)} papers (403 fallback)")
+                        return papers
+                except Exception:
+                    pass
             return papers
         feed = feedparser.parse(r.text)
         for entry in feed.entries:
