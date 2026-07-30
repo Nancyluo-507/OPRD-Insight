@@ -251,12 +251,12 @@ class SaveArticleBody(BaseModel):
 
 @router.post("/user/{user_id}/articles")
 def save_user_article(user_id: int, body: SaveArticleBody, current_user: int = Depends(require_auth)):
-    article = save_article(user_id, body.doi, body.article_title, body.content, body.is_favorite, body.is_read)
+    result = save_article(user_id, body.doi, body.article_title, body.content, body.is_favorite, body.is_read)
     if body.is_favorite:
         add_feedback(user_id, body.doi, "favorited")
     if body.is_read:
         pass  # feedback handled inside crud
-    return {"status": "ok", "is_favorite": article.is_favorite}
+    return {"status": "ok", "is_favorite": result["is_favorite"]}
 
 
 @router.get("/user/{user_id}/favorites")

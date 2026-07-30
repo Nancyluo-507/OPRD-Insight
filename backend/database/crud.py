@@ -196,7 +196,7 @@ def list_matches(user_id: int, topic_id: int = None, days: int = 7) -> list[dict
 
 # ========== User Articles ==========
 
-def save_article(user_id: int, doi: str, title: str, content: str, is_favorite: bool, is_read: bool) -> UserArticle:
+def save_article(user_id: int, doi: str, title: str, content: str, is_favorite: bool, is_read: bool) -> dict:
     db = SessionLocal()
     try:
         article = db.query(UserArticle).filter(
@@ -213,7 +213,8 @@ def save_article(user_id: int, doi: str, title: str, content: str, is_favorite: 
             article = UserArticle(user_id=user_id, doi=doi, article_title=title, content=content, is_favorite=is_favorite, is_read=is_read)
             db.add(article)
         db.commit()
-        return article
+        db.refresh(article)
+        return {"is_favorite": article.is_favorite, "is_read": article.is_read}
     finally:
         db.close()
 
