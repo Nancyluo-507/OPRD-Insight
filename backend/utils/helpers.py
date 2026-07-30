@@ -98,6 +98,9 @@ def require_auth(authorization: str = Header(None)):
     uid = verify_token(authorization[7:])
     if not uid:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    from database.crud import get_user
+    if not get_user(uid):
+        raise HTTPException(status_code=401, detail="User not found")
     return uid
 
 
