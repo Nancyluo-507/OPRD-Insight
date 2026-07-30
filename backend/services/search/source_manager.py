@@ -176,6 +176,13 @@ def search_all_sources(
     print(f"[Timing] Rank: {t_rank}ms | papers={len(all_papers)}")
 
     # ======================================================
+    # Local DB Priority Boost
+    # ======================================================
+    for p in all_papers:
+        if getattr(p, 'source', '') == 'LocalDB':
+            p.score = (p.score or 0) + 50
+
+    # ======================================================
     # Chemistry Relevance Filter
     # ======================================================
 
