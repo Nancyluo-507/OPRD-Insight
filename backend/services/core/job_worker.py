@@ -154,8 +154,8 @@ def handle_fetch_journal(job: Job):
     """采集所有活跃期刊的 RSS 论文 + 自动话题匹配"""
     import json as _json
     payload = json.loads(job.payload or "{}")
-    limit = payload.get("limit", 20)
-    timeout = payload.get("timeout", 120)
+    limit = payload.get("limit", 50)
+    timeout = payload.get("timeout", 300)
 
     papers = collect_all_journals(limit=limit, timeout=timeout)
 

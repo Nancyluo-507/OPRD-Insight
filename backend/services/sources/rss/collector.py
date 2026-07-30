@@ -172,14 +172,19 @@ def _fetch_scraper(url: str, journal: str, publisher: str) -> List[RSSPaper]:
     try:
         r = _get_scraper().get(url, timeout=30)
         if r.status_code != 200:
+            print(f"  RSS {journal}: HTTP {r.status_code}")
             return papers
         feed = feedparser.parse(r.text)
         for entry in feed.entries:
             paper = normalize_entry(entry, source=publisher, journal_title=journal, publisher=publisher)
             if paper:
                 papers.append(paper)
-    except Exception:
-        pass
+        if not papers:
+            print(f"  RSS {journal}: 0 entries parsed from feed")
+        else:
+            print(f"  RSS {journal}: {len(papers)} papers")
+    except Exception as e:
+        print(f"  RSS {journal} error: {e}")
     return papers
 
 
@@ -201,7 +206,7 @@ def collect_all_journals(limit: int = 20, timeout: int = 120) -> List[RSSPaper]:
     journals = [j for j in journals if j.rss_url]
     journals.sort(key=lambda j: j.publisher == "ACS")
     all_papers = []
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=16) as pool:
         futures = {pool.submit(_fetch_one, j, limit): j for j in journals}
         for future in as_completed(futures, timeout=timeout):
             papers = future.result()
