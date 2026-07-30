@@ -11,6 +11,5 @@ lxml
 feedparser
 deep-translator
 cryptography
-sentence-transformers
 psycopg2-binary
 cloudscraper
