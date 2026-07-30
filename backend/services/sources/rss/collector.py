@@ -183,8 +183,26 @@ def _fetch_scraper(url: str, journal: str, publisher: str) -> List[RSSPaper]:
             print(f"  RSS {journal}: 0 entries parsed from feed")
         else:
             print(f"  RSS {journal}: {len(papers)} papers")
+        return papers
     except Exception as e:
-        print(f"  RSS {journal} error: {e}")
+        estr = str(e)
+        print(f"  RSS {journal} error: {estr[:120]}")
+        # Retry once without SSL verification for SSL errors
+        if "SSL" in estr or "EOF" in estr:
+            try:
+                import requests
+                r = requests.get(url, timeout=30, verify=False)
+                if r.status_code == 200:
+                    feed = feedparser.parse(r.text)
+                    for entry in feed.entries:
+                        paper = normalize_entry(entry, source=publisher, journal_title=journal, publisher=publisher)
+                        if paper:
+                            papers.append(paper)
+                    print(f"  RSS {journal}: {len(papers)} papers (SSL fallback)")
+                else:
+                    print(f"  RSS {journal}: HTTP {r.status_code} (SSL fallback)")
+            except Exception as e2:
+                print(f"  RSS {journal}: SSL fallback also failed")
     return papers
 
 
