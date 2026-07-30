@@ -87,7 +87,7 @@ function buildAbstractHTML(paper){
 
             <b>📝 Abstract：</b>
 
-            <span class="abstract-text">
+            <span class="abstract-text" data-full="${abstract.replace(/"/g, "&quot;")}">
 
                 ${shortHTML}
 
@@ -226,7 +226,7 @@ if(readMore){
 
     const abstractText = card.querySelector(".abstract-text");
 
-    const fullHTML = abstractText.innerHTML;
+    const fullHTML = abstractText.dataset.full || abstractText.innerHTML;
 
     const shortHTML =
 
