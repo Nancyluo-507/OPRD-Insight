@@ -14,12 +14,14 @@ def _search_orm(query: str, limit: int = 50):
         return []
     db = SessionLocal()
     try:
+        from sqlalchemy import or_
         q = db.query(PaperORM)
+        filters = []
         for w in words:
             pat = f"%{w}%"
-            q = q.filter(
-                (PaperORM.title.ilike(pat)) | (PaperORM.abstract.ilike(pat))
-            )
+            filters.append(PaperORM.title.ilike(pat))
+            filters.append(PaperORM.abstract.ilike(pat))
+        q = q.filter(or_(*filters))
         rows = q.limit(limit).all()
         return rows
     except Exception as e:

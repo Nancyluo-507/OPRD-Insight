@@ -164,13 +164,13 @@ async function startSearch(){
     try{
 
 
-        const data =
+            const data =
 
-            await searchPaper(
+                await searchPaper(
 
-                keyword,
-                "all",
-                signal
+                    keyword,
+                    "1y",
+                    signal
 
             );
 
