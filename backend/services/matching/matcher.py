@@ -38,7 +38,8 @@ def match_interest_against_papers(interest: UserInterest, papers: list, db) -> l
     """Match a user interest against a list of paper dicts, return matches"""
     interest_vec = _get_interest_vector(interest)
     if interest_vec is None:
-        return []
+        # Fallback to keyword-only matching when embedding model unavailable
+        return _keyword_match_fallback(interest, papers)
 
     wanted_domains = [d.strip() for d in (interest.domain or "").split(",") if d.strip()]
     interest_keywords = split_keywords(interest.keywords)
@@ -88,6 +89,34 @@ def match_interest_against_papers(interest: UserInterest, papers: list, db) -> l
     matches.sort(key=lambda x: x["score"], reverse=True)
     return matches[:10]
 
+
+def _keyword_match_fallback(interest, papers) -> list:
+    """Keyword-only matching when embedding model is unavailable"""
+    keywords = split_keywords(interest.keywords)
+    if not keywords:
+        return []
+    matches = []
+    for paper in papers:
+        doi = paper.get("doi") or getattr(paper, "doi", "")
+        if not doi:
+            continue
+        title = getattr(paper, "title", "") or paper.get("title", "")
+        abstract = getattr(paper, "abstract", "") or paper.get("abstract", "")
+        summary = getattr(paper, "summary", "") or paper.get("summary", "")
+        paper_text = f"{title}. {abstract or summary or ''}"
+        kw_hits = count_keyword_hits(paper_text, keywords)
+        if not kw_hits:
+            continue
+        score = min(0.3 + len(kw_hits) * 0.03, 1.0)
+        matches.append({
+            "doi": doi,
+            "title": title,
+            "semantic_score": 0.0,
+            "score": round(score, 4),
+            "matched_keywords": kw_hits,
+        })
+    matches.sort(key=lambda x: x["score"], reverse=True)
+    return matches[:10]
 
 def _get_interest_vector(interest: UserInterest) -> list:
     if interest.vector:
