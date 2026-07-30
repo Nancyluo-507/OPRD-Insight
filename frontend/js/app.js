@@ -169,7 +169,7 @@ async function startSearch(){
                 await searchPaper(
 
                     keyword,
-                    "1y",
+                    "all",
                     signal
 
             );
