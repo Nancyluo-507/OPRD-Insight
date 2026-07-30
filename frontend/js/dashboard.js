@@ -162,7 +162,8 @@ async function renderInterests(userId) {
     const el = document.getElementById("interest-list");
     if (!el) return;
     try {
-        const resp = await fetch(`/api/v1/user/${userId}/interests`);
+        const token = localStorage.getItem("chemvigil_token");
+        const resp = await fetch(`/api/v1/user/${userId}/interests`, {headers: token ? {"Authorization": "Bearer " + token} : {}});
         const data = await resp.json();
         const interests = data.interests || [];
         if (interests.length === 0) {
@@ -227,9 +228,10 @@ async function initTopics(userId) {
             createBtn.disabled = true;
             createBtn.textContent = "Creating...";
             try {
+                const token = localStorage.getItem("chemvigil_token");
                 const resp = await fetch(`/api/v1/user/${userId}/interests`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", ...(token ? {"Authorization": "Bearer " + token} : {}) },
                     body: JSON.stringify({ name, domain, description, keywords }),
                 });
                 if (!resp.ok) {
