@@ -255,6 +255,112 @@ def handle_send_email(job: Job):
     return {"stage": "DONE", "email_result": {"status": "skipped", "message": f"Unknown kind: {kind}"}}
 
 
+def _fetch_external_papers(interests, db, match_limit=200):
+    """Search CrossRef/PubMed/OpenAlex for interest keywords (90d), save new papers to DB"""
+    from datetime import datetime, timedelta
+    from services.sources.crossref import search_crossref
+    from services.sources.pubmed import search_pubmed
+    from services.sources.openalex import search_openalex
+    from services.matching.encoder import get_or_compute_embedding
+    from services.domain.domain_keywords import get_paper_domain
+
+    cutoff = datetime.now() - timedelta(days=90)
+    all_keywords = set()
+    for interest in interests:
+        kws = split_keywords(interest.keywords)
+        for kw in kws:
+            if kw:
+                all_keywords.add(kw)
+    if not all_keywords:
+        return
+
+    query = " ".join(all_keywords)
+    print(f"[NEW_ARTICLES] Fetching external papers for: {query}")
+
+    def _is_recent(p):
+        date_str = p.publication_date or ""
+        if not date_str:
+            return True  # no date info, include anyway
+        try:
+            for fmt in ("%Y-%m-%d", "%Y-%m", "%Y"):
+                dt = datetime.strptime(date_str.strip(), fmt)
+                return dt >= cutoff
+        except:
+            pass
+        return True
+
+    saved_count = 0
+    for source_name, handler in [("crossref", search_crossref), ("pubmed", search_pubmed), ("openalex", search_openalex)]:
+        try:
+            papers, _, total = handler(query, per_page=50)
+            papers = [p for p in papers if _is_recent(p)]
+            print(f"  {source_name}: {len(papers)} recent (total={total})")
+            for p in papers:
+                if not p.doi or not p.title:
+                    continue
+                existing = db.query(Paper).filter(Paper.doi == p.doi).first()
+                if existing:
+                    continue
+                yr = p.year or 0
+                try:
+                    if p.publication_date:
+                        yr = int(str(p.publication_date)[:4])
+                except:
+                    pass
+                orm = Paper(
+                    title=p.title,
+                    abstract=p.abstract or "",
+                    authors=p.authors or "",
+                    year=yr,
+                    publication_date=str(p.publication_date or ""),
+                    doi=p.doi,
+                    url=p.doi_url or f"https://doi.org/{p.doi}",
+                    journal=p.journal or "",
+                    keywords=";".join(p.keywords) if p.keywords else "",
+                    source=source_name,
+                    doi_url=f"https://doi.org/{p.doi}",
+                )
+                db.add(orm)
+                saved_count += 1
+        except Exception as e:
+            print(f"  {source_name} error: {e}")
+
+    if saved_count:
+        db.commit()
+        print(f"[NEW_ARTICLES] Saved {saved_count} new papers from external APIs")
+
+        # Enrich abstracts for papers without them
+        from services.sources.crossref import batch_enrich_all_sources
+        new_ones = db.query(Paper).filter(Paper.source.in_(["crossref", "pubmed", "openalex"]), Paper.abstract == "").order_by(Paper.id.desc()).limit(saved_count).all()
+        if new_ones:
+            dois_to_enrich = [p.doi for p in new_ones if p.doi]
+            if dois_to_enrich:
+                print(f"  Enriching {len(dois_to_enrich)} abstracts...")
+                enriched = batch_enrich_all_sources(dois_to_enrich)
+                for p in new_ones:
+                    if p.doi and p.doi in enriched:
+                        p.abstract = enriched[p.doi]
+                db.commit()
+                print(f"  Enriched {len(enriched)} abstracts")
+
+        # Compute embeddings for new papers
+        new_ones_all = db.query(Paper).filter(Paper.source.in_(["crossref", "pubmed", "openalex"])).order_by(Paper.id.desc()).limit(saved_count).all()
+        for p in new_ones_all:
+            if p.doi and p.title:
+                txt = f"{p.title} {p.abstract or ''}"
+                dom = get_paper_domain(p.journal or "", txt)
+                get_or_compute_embedding(p.doi, p.title, p.abstract or "", "", dom)
+    else:
+        print("[NEW_ARTICLES] No new papers from external APIs")
+
+
+def split_keywords(value):
+    import re
+    if not value:
+        return []
+    return [k.strip().lower() for k in re.split(r"[;,、；，]", str(value)) if k.strip()]
+
+
 @register_handler("NEW_ARTICLES")
 def handle_new_articles(job: Job):
     """匹配全库论文→用户兴趣，发送推送邮件"""
@@ -283,6 +389,9 @@ def handle_new_articles(job: Job):
         from services.domain.domain_keywords import get_paper_domain
         from services.matching.matcher import match_interest_against_papers
         from services.matching.encoder import get_or_compute_embedding
+
+        # Fetch recent papers from external APIs (CrossRef/PubMed/OpenAlex) for interest keywords
+        _fetch_external_papers(interests, db, match_limit)
 
         # Collect all existing match DOIs for this user (to skip)
         matched_dois = set()
