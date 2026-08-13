@@ -1,5 +1,20 @@
 const API_BASE = "";
 
+let _handling401 = false;
+
+function clearAuth() {
+    localStorage.removeItem("chemvigil_token");
+    localStorage.removeItem("chemvigil_user_id");
+    localStorage.removeItem("chemvigil_user_name");
+}
+
+function handle401() {
+    if (_handling401) return;
+    _handling401 = true;
+    clearAuth();
+    location.reload();
+}
+
 async function request(url, options = {}) {
     const token = localStorage.getItem("chemvigil_token");
     const headers = { "Content-Type": "application/json", ...options.headers };
@@ -7,6 +22,10 @@ async function request(url, options = {}) {
         headers["Authorization"] = `Bearer ${token}`;
     }
     const resp = await fetch(`${API_BASE}${url}`, { ...options, headers });
+    if (resp.status === 401 && !options.skipAuthRedirect) {
+        handle401();
+        throw new Error("Session expired. Please sign in again.");
+    }
     if (!resp.ok) {
         const text = await resp.text();
         throw new Error(`HTTP ${resp.status}: ${text.substring(0, 100)}`);

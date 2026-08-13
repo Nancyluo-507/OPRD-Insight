@@ -700,6 +700,59 @@ function initSettings(userId) {
         if (overlay) overlay.classList.add("hidden");
     }
 
+    function setupAuthUI() {
+        // Tabs
+        if (tabLogin) tabLogin.addEventListener("click", () => setMode(false));
+        if (tabRegister) tabRegister.addEventListener("click", () => setMode(true));
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", () => setMode(!isRegisterMode));
+        }
+
+        // Enter key triggers login
+        [nameInput, passInput, emailInput].forEach(el => {
+            if (el) el.addEventListener("keydown", e => {
+                if (e.key === "Enter" && loginBtn) loginBtn.click();
+            });
+        });
+
+        if (loginBtn) {
+            loginBtn.addEventListener("click", async () => {
+                const name = nameInput.value.trim();
+                const pass = passInput.value.trim();
+                if (!name || !pass) {
+                    setError("Please enter username and password");
+                    return;
+                }
+                loginBtn.disabled = true;
+                loginBtn.textContent = isRegisterMode ? "Registering..." : "Signing in...";
+                try {
+                    if (isRegisterMode) {
+                        const email = emailInput.value.trim();
+                        if (!email) {
+                            setError("Email is required for registration");
+                            loginBtn.disabled = false;
+                            loginBtn.textContent = "Register";
+                            return;
+                        }
+                        await register(name, pass, email);
+                        setSuccess("✅ Registration successful!");
+                        setTimeout(() => { showUserInfo(); location.reload(); }, 1500);
+                    } else {
+                        const user = await login(name, pass);
+                        localStorage.setItem("chemvigil_target_email", user.target_email || "");
+                        showUserInfo();
+                        location.reload();
+                    }
+                } catch (e) {
+                    setError(e.message);
+                }
+                loginBtn.disabled = false;
+                loginBtn.textContent = isRegisterMode ? "Register" : "Sign In";
+            });
+        }
+    }
+
     if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
             authLogout();
@@ -715,71 +768,29 @@ function initSettings(userId) {
                 const resp = await fetch(`/api/v1/auth/me`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-                if (!resp.ok) throw new Error();
+                if (!resp.ok) {
+                    if (resp.status === 401) {
+                        authLogout();
+                        localStorage.removeItem("chemvigil_target_email");
+                    }
+                    throw new Error("Session expired");
+                }
                 const data = await resp.json();
                 if (data.user) {
                     localStorage.setItem("chemvigil_target_email", data.user.target_email || "");
                 }
             } catch(e) {}
         }
-        showUserInfo();
-        return;
+        if (isLoggedIn()) {
+            showUserInfo();
+            return;
+        }
     }
 
-    // Show login overlay
+    // Token missing or expired -> show login overlay
     if (overlay) overlay.classList.remove("hidden");
     setError("");
-
-    // Tabs
-    if (tabLogin) tabLogin.addEventListener("click", () => setMode(false));
-    if (tabRegister) tabRegister.addEventListener("click", () => setMode(true));
-
-    if (toggleBtn) {
-        toggleBtn.addEventListener("click", () => setMode(!isRegisterMode));
-    }
-
-    // Enter key triggers login
-    [nameInput, passInput, emailInput].forEach(el => {
-        if (el) el.addEventListener("keydown", e => {
-            if (e.key === "Enter" && loginBtn) loginBtn.click();
-        });
-    });
-
-    if (loginBtn) {
-        loginBtn.addEventListener("click", async () => {
-            const name = nameInput.value.trim();
-            const pass = passInput.value.trim();
-            if (!name || !pass) {
-                setError("Please enter username and password");
-                return;
-            }
-            loginBtn.disabled = true;
-            loginBtn.textContent = isRegisterMode ? "Registering..." : "Signing in...";
-            try {
-                if (isRegisterMode) {
-                    const email = emailInput.value.trim();
-                    if (!email) {
-                        setError("Email is required for registration");
-                        loginBtn.disabled = false;
-                        loginBtn.textContent = "Register";
-                        return;
-                    }
-                    await register(name, pass, email);
-                    setSuccess("✅ Registration successful!");
-                    setTimeout(() => { showUserInfo(); location.reload(); }, 1500);
-                } else {
-                    const user = await login(name, pass);
-                    localStorage.setItem("chemvigil_target_email", user.target_email || "");
-                    showUserInfo();
-                    location.reload();
-                }
-            } catch (e) {
-                setError(e.message);
-            }
-            loginBtn.disabled = false;
-            loginBtn.textContent = isRegisterMode ? "Register" : "Sign In";
-        });
-    }
+    setupAuthUI();
 
 })();
 
